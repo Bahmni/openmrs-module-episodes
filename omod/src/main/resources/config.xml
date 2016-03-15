@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<module configVersion="1.2">
+	
+	<!-- Base Module Properties -->
+	<id>${project.parent.artifactId}</id>
+	<name>${project.parent.name}</name>
+	<version>${project.parent.version}</version>
+	<package>${MODULE_PACKAGE}</package>
+	<author>Vinay Venu</author>
+	<description>
+			${project.parent.description}
+	</description>
+
+	<activator>${MODULE_PACKAGE}.Activator</activator>
+	
+	<require_version>${openmrs.platform.version}</require_version>
+</module>
+
