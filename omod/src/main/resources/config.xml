@@ -12,8 +12,13 @@
 			${project.parent.description}
 	</description>
 
-	<activator>${MODULE_PACKAGE}.Activator</activator>
+	<activator>${MODULE_PACKAGE}.EpisodeActivator</activator>
 	
 	<require_version>${openmrs.platform.version}</require_version>
+
+	<mappingFiles>
+		Episode.hbm.xml
+	</mappingFiles>
+
 </module>
 

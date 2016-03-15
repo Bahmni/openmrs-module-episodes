@@ -1,7 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
- 
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
-                  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+    <changeSet author="rnjn/vinay" id="20160208-1819">
+        <createTable tableName="episode">
+            <column autoIncrement="true" name="episode_id" type="int">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="creator" type="int">
+                <constraints nullable="true"/>
+            </column>
+            <column name="date_created" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed_by" type="int"/>
+            <column name="date_changed" type="DATETIME"/>
+            <column defaultValueBoolean="false" name="voided" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="voided_by" type="int"/>
+            <column name="date_voided" type="DATETIME"/>
+            <column name="void_reason" type="varchar(255)"/>
+            <column name="uuid" type="char(38)" >
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="rnjn/vinay" id="20160208-1820">
+        <createTable tableName="episode_encounter">
+            <column name="episode_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="encounter_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="episode_encounter_episode_id"
+                                 baseTableName="episode_encounter" baseColumnNames="episode_id"
+                                 referencedTableName="episode" referencedColumnNames="episode_id"
+                />
+        <addForeignKeyConstraint constraintName="episode_encounter_encounter_id"
+                                 baseTableName="episode_encounter" baseColumnNames="encounter_id"
+                                 referencedTableName="encounter" referencedColumnNames="encounter_id"
+                />
+
+    </changeSet>
+    <changeSet author="rnjn/vinay" id="20160208-1821">
+        <createTable tableName="episode_patient_program">
+            <column name="episode_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="patient_program_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="episode_patient_program_episode_id"
+                                 baseTableName="episode_patient_program" baseColumnNames="episode_id"
+                                 referencedTableName="episode" referencedColumnNames="episode_id"
+                />
+        <addForeignKeyConstraint constraintName="episode_patient_program_patient_program_id"
+                                 baseTableName="episode_patient_program" baseColumnNames="patient_program_id"
+                                 referencedTableName="patient_program" referencedColumnNames="patient_program_id"
+                />
+    </changeSet>
+    <changeSet author="rnjn/vinay" id="20160208-1822">
+        <createIndex indexName="episode_encounter_episode_index" tableName="episode_encounter" unique="false">
+            <column name="episode_id"/>
+        </createIndex>
+        <createIndex indexName="episode_patient_program_episode_index" tableName="episode_patient_program" unique="false">
+            <column name="episode_id"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>
