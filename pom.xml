@@ -24,6 +24,14 @@
 		<MODULE_PACKAGE>${project.groupId}.${MODULE_ID}</MODULE_PACKAGE>
     </properties>
 
+	<distributionManagement>
+		<snapshotRepository>
+			<id>bahmni-artifactory</id>
+			<name>bahmni-artifactory-snapshots</name>
+			<url>http://bahmnirepo.thoughtworks.com/artifactory/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
