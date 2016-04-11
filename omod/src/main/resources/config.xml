@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <module configVersion="1.2">
-	
-	<!-- Base Module Properties -->
-	<id>${project.parent.artifactId}</id>
-	<name>${project.parent.name}</name>
-	<version>${project.parent.version}</version>
-	<package>${MODULE_PACKAGE}</package>
-	<author>Vinay Venu</author>
-	<description>
-			${project.parent.description}
-	</description>
 
-	<activator>${MODULE_PACKAGE}.EpisodeActivator</activator>
+	<id>@MODULE_ID@</id>
+	<name>@MODULE_NAME@</name>
+	<version>@MODULE_VERSION@</version>
+	<package>@MODULE_PACKAGE@</package>
+
+	<author>Thoughtworks</author>
+	<description>@MODULE_DESCRIPTION@</description>
+
+	<activator>@MODULE_PACKAGE@.EpisodeActivator</activator>
 	
-	<require_version>${openmrs.platform.version}</require_version>
+	<require_version>@openmrs.platform.version@</require_version>
 
 	<mappingFiles>
 		Episode.hbm.xml

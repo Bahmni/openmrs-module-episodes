@@ -22,6 +22,8 @@
 		<MODULE_NAME>${project.name}</MODULE_NAME>
 		<MODULE_VERSION>${project.version}</MODULE_VERSION>
 		<MODULE_PACKAGE>${project.groupId}.${MODULE_ID}</MODULE_PACKAGE>
+		<MODULE_DESCRIPTION>${project.description}</MODULE_DESCRIPTION>
+		<REQUIRED_OPENMRS_VERSION>${openmrs.platform.version}</REQUIRED_OPENMRS_VERSION>
     </properties>
 
 	<distributionManagement>
