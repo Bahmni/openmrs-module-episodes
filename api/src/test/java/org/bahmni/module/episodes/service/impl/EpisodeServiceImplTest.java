@@ -1,69 +1,32 @@
 package org.bahmni.module.episodes.service.impl;
 
 import org.junit.Test;
-import org.openmrs.PatientProgram;
-import org.openmrs.api.ProgramWorkflowService;
-import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.service.EpisodeService;
-import org.openmrs.test.BaseModuleContextSensitiveTest;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.openmrs.Encounter;
+import org.openmrs.module.episodes.dao.impl.EpisodeDAO;
+import org.openmrs.module.episodes.service.impl.EpisodeServiceImpl;
 
-import java.util.Set;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+@RunWith(MockitoJUnitRunner.class)
+public class EpisodeServiceImplTest {
 
-public class EpisodeServiceImplTest extends BaseModuleContextSensitiveTest {
-    @Autowired
-    private EpisodeService episodeService;
-    @Autowired
-    private ProgramWorkflowService programWorkflowService;
+    @InjectMocks
+    private EpisodeServiceImpl episodeService;
 
-    @Test
-    public void shouldCreateANewEpisode() {
-        Episode episode = createAnEpisode();
-        assertThat(episode.getId(), is(notNullValue()));
-        Episode savedEpisode = episodeService.get(episode.getId());
-        assertThat(savedEpisode.getEncounters(), is(notNullValue()));
-    }
+    @Mock
+    EpisodeDAO episodeDAO;
 
     @Test
-    public void shouldRetrieveEpisodeForAProgram() {
-        createAnEpisode();
-        PatientProgram patientProgram = testPatientProgram();
+    public void shouldGetEncounterForAnEpisode() {
+        Encounter encounter = new Encounter();
 
-        Episode episodeForPatientProgram = episodeService.getEpisodeForPatientProgram(patientProgram);
+        episodeService.getEpisodeForEncounter(encounter);
 
-        Set<PatientProgram> patientPrograms = episodeForPatientProgram.getPatientPrograms();
-        assertThat(patientPrograms.size(), is(equalTo(1)));
-        assertThat(patientPrograms.iterator().next().getUuid(), is(equalTo(patientProgram.getUuid())));
-    }
-
-    @Test
-    public void shouldReturnNullIfPatientProgramIsNotLinkedToAnEpisode() {
-        Episode episodeForPatientProgram = episodeService.getEpisodeForPatientProgram(testPatientProgram());
-
-        assertThat(episodeForPatientProgram, is(nullValue()));
-    }
-
-    @Test
-    public void shouldReturnNullEpisodeIfPatientProgramIsNull() {
-        Episode episodeForPatientProgram = episodeService.getEpisodeForPatientProgram(null);
-
-        assertThat(episodeForPatientProgram, is(nullValue()));
-    }
-
-    private Episode createAnEpisode() {
-        Episode episode = new Episode();
-        episode.addPatientProgram(testPatientProgram());
-        episodeService.save(episode);
-        return episode;
-    }
-
-    private PatientProgram testPatientProgram() {
-        return programWorkflowService.getPatientProgram(1);
+        verify(episodeDAO, times(1)).getEpisodeForEncounter(encounter);
     }
 }

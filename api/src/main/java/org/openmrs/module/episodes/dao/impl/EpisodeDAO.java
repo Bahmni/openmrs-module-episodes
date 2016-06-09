@@ -1,12 +1,15 @@
 package org.openmrs.module.episodes.dao.impl;
 
+import org.openmrs.Encounter;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 
 public interface EpisodeDAO {
-    public void save(Episode episode);
+    void save(Episode episode);
 
-    public Episode get(Integer episodeId);
+    Episode get(Integer episodeId);
 
-    public Episode getEpisodeForPatientProgram(PatientProgram patientProgram);
+    Episode getEpisodeForPatientProgram(PatientProgram patientProgram);
+
+    Episode getEpisodeForEncounter(Encounter encounter);
 }

@@ -1,5 +1,6 @@
 package org.openmrs.module.episodes.service.impl;
 
+import org.openmrs.Encounter;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.impl.EpisodeDAO;
@@ -27,5 +28,10 @@ public class EpisodeServiceImpl implements EpisodeService {
     @Override
     public Episode getEpisodeForPatientProgram(PatientProgram patientProgram) {
         return episodeDAO.getEpisodeForPatientProgram(patientProgram);
+    }
+
+    @Override
+    public Episode getEpisodeForEncounter(Encounter encounter) {
+        return episodeDAO.getEpisodeForEncounter(encounter);
     }
 }

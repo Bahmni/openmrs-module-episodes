@@ -2,6 +2,7 @@ package org.openmrs.module.episodes.dao.impl.impl;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.classic.Session;
+import org.openmrs.Encounter;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.impl.EpisodeDAO;
@@ -31,6 +32,16 @@ public class EpisodeDAOImpl implements EpisodeDAO {
                         "INNER JOIN e.patientPrograms pp " +
                         "WHERE pp = :patientProgram")
                 .setParameter("patientProgram", patientProgram)
+                .uniqueResult();
+    }
+
+    @Override
+    public Episode getEpisodeForEncounter(Encounter encounter) {
+        return (Episode) session().createQuery(
+                "SELECT e FROM Episode e " +
+                        "INNER JOIN e.encounters ee " +
+                        "WHERE ee = :encounter")
+                .setParameter("encounter", encounter)
                 .uniqueResult();
     }
 
