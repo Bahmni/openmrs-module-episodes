@@ -9,6 +9,8 @@ import org.openmrs.module.episodes.dao.impl.EpisodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class EpisodeDAOImpl implements EpisodeDAO {
 
@@ -43,6 +45,11 @@ public class EpisodeDAOImpl implements EpisodeDAO {
                         "WHERE ee = :encounter")
                 .setParameter("encounter", encounter)
                 .uniqueResult();
+    }
+
+    @Override
+    public List<Episode> getAllEpisodes() {
+        return session().createCriteria(Episode.class).list();
     }
 
     private Session session() {

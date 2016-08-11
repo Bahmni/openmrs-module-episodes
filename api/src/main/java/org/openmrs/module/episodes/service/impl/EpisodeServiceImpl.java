@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Component
 @Transactional
 public class EpisodeServiceImpl implements EpisodeService {
@@ -33,5 +35,10 @@ public class EpisodeServiceImpl implements EpisodeService {
     @Override
     public Episode getEpisodeForEncounter(Encounter encounter) {
         return episodeDAO.getEpisodeForEncounter(encounter);
+    }
+
+    @Override
+    public List<Episode> getAllEpisodes() {
+        return episodeDAO.getAllEpisodes();
     }
 }

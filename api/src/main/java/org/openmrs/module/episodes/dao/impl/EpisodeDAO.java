@@ -4,6 +4,8 @@ import org.openmrs.Encounter;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 
+import java.util.List;
+
 public interface EpisodeDAO {
     void save(Episode episode);
 
@@ -12,4 +14,6 @@ public interface EpisodeDAO {
     Episode getEpisodeForPatientProgram(PatientProgram patientProgram);
 
     Episode getEpisodeForEncounter(Encounter encounter);
+
+    List<Episode> getAllEpisodes();
 }
