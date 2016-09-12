@@ -17,7 +17,7 @@
 	</modules>
 
     <properties>
-        <openmrs.platform.version>1.9.8</openmrs.platform.version>
+        <openmrs.platform.version>2.0.0</openmrs.platform.version>
 		<MODULE_ID>episodes</MODULE_ID>
 		<MODULE_NAME>${project.name}</MODULE_NAME>
 		<MODULE_VERSION>${project.version}</MODULE_VERSION>
@@ -25,7 +25,10 @@
 		<MODULE_DESCRIPTION>${project.description}</MODULE_DESCRIPTION>
 		<REQUIRED_OPENMRS_VERSION>${openmrs.platform.version}</REQUIRED_OPENMRS_VERSION>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+		<junitVersion>4.12</junitVersion>
+		<powerMockVersion>1.6.5</powerMockVersion>
+		<mockitoVersion>1.10.19</mockitoVersion>
+	</properties>
 
 	<distributionManagement>
 		<snapshotRepository>
@@ -60,13 +63,13 @@
 			<dependency>
 				<groupId>org.openmrs.api</groupId>
 				<artifactId>openmrs-api</artifactId>
-				<version>1.9.8</version>
+				<version>${openmrs.platform.version}</version>
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.openmrs.web</groupId>
 				<artifactId>openmrs-web</artifactId>
-				<version>1.9.8</version>
+				<version>${openmrs.platform.version}</version>
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
@@ -93,10 +96,34 @@
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
-				<version>4.8.2</version>
+				<version>${junitVersion}</version>
 				<scope>test</scope>
 			</dependency>
-		</dependencies>
+			<dependency>
+				<groupId>org.powermock</groupId>
+				<artifactId>powermock-module-junit4</artifactId>
+				<version>${powerMockVersion}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.powermock</groupId>
+				<artifactId>powermock-api-mockito</artifactId>
+				<version>${powerMockVersion}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-all</artifactId>
+				<version>${mockitoVersion}</version>
+				<scope>test</scope>
+			</dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockitoVersion}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
 	</dependencyManagement>
 
 	<repositories>

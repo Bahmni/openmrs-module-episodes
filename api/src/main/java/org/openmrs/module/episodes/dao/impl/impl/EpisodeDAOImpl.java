@@ -1,7 +1,7 @@
 package org.openmrs.module.episodes.dao.impl.impl;
 
 import org.hibernate.SessionFactory;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 import org.openmrs.Encounter;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
