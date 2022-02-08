@@ -30,13 +30,13 @@
 		<mockitoVersion>1.10.19</mockitoVersion>
 	</properties>
 
-	<distributionManagement>
+	<!-- <distributionManagement>
        <snapshotRepository>
            <id>repo.mybahmni.org</id>
            <name>bahmni-artifactory-snapshots</name>
            <url>s3://repo.mybahmni.org/artifactory/snapshot</url>
        </snapshotRepository>
-	</distributionManagement>
+	</distributionManagement> -->
 	<profiles>
 		<profile>
 				<id>github</id>
