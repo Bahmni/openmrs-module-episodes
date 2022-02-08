@@ -3,6 +3,7 @@
 .project
 .classpath
 target
+.talismanrc
 
 # Package Files #
 *.jar
