@@ -1,14 +1,9 @@
 name: Continuous Integration
 on:
-  # workflow_run:
-  #   workflows: [Build and generate artifacts for openmrs-module-episodes]
-  #   types:
-  #     - completed
-  push:
-    branches: 
-    - master 
-    - BAH-*
-  
+  workflow_run:
+    workflows: [Build and generate artifacts for openmrs-module-episodes]
+    types:
+      - completed
   
 env:
   ORG_NAME: Bahmni
@@ -17,7 +12,7 @@ jobs:
   demo:
     name: Trigger Workflows
     runs-on: ubuntu-latest
-    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     strategy:
       matrix:
         dependent-repos: ["openmrs-distro-bahmni"]
