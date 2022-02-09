@@ -32,28 +32,28 @@
 
 	<profiles>
 		<profile>
-            <id>mybahmni-s3</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>repo.mybahmni.org</id>
-           			<name>bahmni-artifactory-snapshots</name>
-           			<url>s3://repo.mybahmni.org/artifactory/snapshot</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>github</id>
-            <distributionManagement>
-                <repository>
-                    <id>github</id>
+			<id>mybahmni-s3</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>repo.mybahmni.org</id>
+					<name>bahmni-artifactory-snapshots</name>
+					<url>s3://repo.mybahmni.org/artifactory/snapshot</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>github</id>
+			<distributionManagement>
+				<repository>
+					<id>github</id>
 					<name>openmrs-module-episodes-snapshot</name>
 					<url>https://maven.pkg.github.com/Bahmni/openmrs-module-episodes</url>
-                </repository>
-            </distributionManagement>
-        </profile>
+				</repository>
+			</distributionManagement>
+		</profile>
     </profiles>
 	<dependencyManagement>
 		<dependencies>
