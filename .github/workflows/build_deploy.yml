@@ -1,4 +1,4 @@
-name: Build and generate artifacts for openmrs-module-episodes
+name: Build package and deploy
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
     - master 
     
 jobs:
-  build:
+  build-package-deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -17,7 +17,7 @@ jobs:
         server-id: github
         server-username: GITHUB_USER_REF  
         server-password: GITHUB_TOKEN_REF
-    - name: Build with Maven
+    - name: Build package and deploy with Maven
       run: |
         mvn package -DattachMuleSources -Pgithub deploy
       env:
