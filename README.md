@@ -10,13 +10,13 @@ This module demonstrates the use of Episodes of Care for OpenMRS. The intention 
 
 Building from Source
 --------------------
-You will need to have Java 1.7+ and Maven 2.x+ installed.  Use the command 'mvn package' to
+You will need to have Java 1.7+ installed.  Use the command './mvnw package' to
 compile and package the module.  The .omod file will be in the omod/target folder.
 
 Alternatively you can add the snippet provided in the [Creating Modules](https://wiki.openmrs.org/x/cAEr) page to your 
 omod/pom.xml and use the mvn command:
 
-    mvn package -P deploy-web -D deploy.path="../../openmrs-1.8.x/webapp/src/main/webapp"
+    ./mvnw package -P deploy-web -D deploy.path="../../openmrs-1.8.x/webapp/src/main/webapp"
 
 It will allow you to deploy any changes to your web 
 resources such as jsp or js files without re-installing the module. The deploy path says 
