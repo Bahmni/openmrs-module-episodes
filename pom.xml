@@ -17,7 +17,7 @@
 	</modules>
 
     <properties>
-        <openmrs.platform.version>2.3.0</openmrs.platform.version>
+        <openmrs.platform.version>2.4.0</openmrs.platform.version>
 		<MODULE_ID>episodes</MODULE_ID>
 		<MODULE_NAME>${project.name}</MODULE_NAME>
 		<MODULE_VERSION>${project.version}</MODULE_VERSION>
@@ -25,9 +25,9 @@
 		<MODULE_DESCRIPTION>${project.description}</MODULE_DESCRIPTION>
 		<REQUIRED_OPENMRS_VERSION>${openmrs.platform.version}</REQUIRED_OPENMRS_VERSION>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<junitVersion>4.12</junitVersion>
-		<powerMockVersion>1.6.5</powerMockVersion>
-		<mockitoVersion>1.10.19</mockitoVersion>
+		<junitVersion>4.13</junitVersion>
+		<powerMockVersion>1.7.4</powerMockVersion>
+		<mockitoVersion>3.5.11</mockitoVersion>
 	</properties>
 
 	<profiles>
@@ -138,7 +138,7 @@
          <repository>
            <id>repo.mybahmni.org</id>
            <name>bahmni-artifactory-snapshots</name>
-           <url>http://repo.mybahmni.org.s3.amazonaws.com/artifactory/snapshot</url>
+           <url>https://repo.mybahmni.org.s3.amazonaws.com/artifactory/snapshot</url>
            <snapshots>
                <updatePolicy>always</updatePolicy>
            </snapshots>
@@ -146,7 +146,7 @@
         <repository>
           <id>repo.mybahmni.org-release</id>
           <name>bahmni-artifactory-release</name>
-          <url>http://repo.mybahmni.org.s3.amazonaws.com/artifactory/release</url>
+          <url>https://repo.mybahmni.org.s3.amazonaws.com/artifactory/release</url>
       </repository>
 	</repositories>
 
