@@ -28,6 +28,7 @@
 		<junitVersion>4.13</junitVersion>
 		<powerMockVersion>1.7.4</powerMockVersion>
 		<mockitoVersion>3.5.11</mockitoVersion>
+		<javaxServletVersion>4.0.1</javaxServletVersion>
 	</properties>
 
 	<profiles>
@@ -71,6 +72,12 @@
 				<artifactId>openmrs-web</artifactId>
 				<version>${openmrs.platform.version}</version>
 				<scope>provided</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>javax.servlet</groupId>
+						<artifactId>servlet-api</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.openmrs.test</groupId>
@@ -92,6 +99,12 @@
 				<type>test-jar</type>
 				<version>${openmrs.platform.version}</version>
 				<scope>test</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>javax.servlet</groupId>
+						<artifactId>servlet-api</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
