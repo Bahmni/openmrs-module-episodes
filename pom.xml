@@ -25,8 +25,6 @@
 		<MODULE_DESCRIPTION>${project.description}</MODULE_DESCRIPTION>
 		<REQUIRED_OPENMRS_VERSION>${openmrs.platform.version}</REQUIRED_OPENMRS_VERSION>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<junitVersion>4.13</junitVersion>
-		<powerMockVersion>1.7.4</powerMockVersion>
 		<mockitoVersion>3.5.11</mockitoVersion>
 		<javaxServletVersion>4.0.1</javaxServletVersion>
 	</properties>
@@ -111,24 +109,6 @@
 						<artifactId>servlet-api</artifactId>
 					</exclusion>
 				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junitVersion}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.powermock</groupId>
-				<artifactId>powermock-module-junit4</artifactId>
-				<version>${powerMockVersion}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.powermock</groupId>
-				<artifactId>powermock-api-mockito</artifactId>
-				<version>${powerMockVersion}</version>
-				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>
