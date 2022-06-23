@@ -1,12 +1,10 @@
 package org.bahmni.module.episodes.service.impl;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Encounter;
-import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.ProgramWorkflowService;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.service.EpisodeService;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
@@ -19,7 +17,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
 
 public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
     @Autowired

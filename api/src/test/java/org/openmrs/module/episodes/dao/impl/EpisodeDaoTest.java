@@ -1,6 +1,7 @@
 package org.openmrs.module.episodes.dao.impl;
 
-import org.junit.Test;
+import org.hibernate.TransientObjectException;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Encounter;
 import org.openmrs.PatientProgram;
 import org.openmrs.api.EncounterService;
@@ -17,7 +18,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EpisodeDaoTest extends BaseModuleContextSensitiveTest {
 
@@ -89,9 +90,14 @@ public class EpisodeDaoTest extends BaseModuleContextSensitiveTest {
         assertThat(episodeForPatientProgram, is(nullValue()));
     }
 
-    @Test (expected = Exception.class)
+    @Test
     public void shouldThrowExceptionIfTransientProgramInstanceUsedToRetrieveEpisode() {
-        episodeDAO.getEpisodeForPatientProgram(new PatientProgram());
+        try {
+            episodeDAO.getEpisodeForPatientProgram(new PatientProgram());
+        } catch(Exception e) {
+            Throwable t = e.getCause();
+            assertTrue(t instanceof TransientObjectException);
+        }
     }
 
     @Test

@@ -1,18 +1,18 @@
 package org.bahmni.module.episodes.service.impl;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.openmrs.Encounter;
 import org.openmrs.module.episodes.dao.impl.EpisodeDAO;
 import org.openmrs.module.episodes.service.impl.EpisodeServiceImpl;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(SpringExtension.class)
 public class EpisodeServiceImplTest {
 
     @InjectMocks
