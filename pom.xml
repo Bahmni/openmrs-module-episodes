@@ -2,14 +2,38 @@
 		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.openmrs.module</groupId>
+	<groupId>org.bahmni.module</groupId>
 	<artifactId>episodes</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Episodes of Care Module</name>
 	<description>Implementation of Episodes of Care for OpenMRS</description>
+	<url>https://github.com/Bahmni/openmrs-module-episodes</url>
+	<organization>
+		<name>Bahmni</name>
+		<url>http://bahmni.org</url>
+	</organization>
 
-	<url>https://wiki.openmrs.org/x/_gBl</url>
+	<licenses>
+		<license>
+			<name>GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.0</name>
+			<url>https://www.gnu.org/licenses/agpl-3.0.txt</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Bahmni</name>
+			<email>bahmnicommunity@gmail.com</email>
+			<organization>Bahmni</organization>
+			<organizationUrl>https://github.com/Bahmni</organizationUrl>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:git@github.com:Bahmni/openmrs-module-episodes.git</connection>
+		<developerConnection>scm:git:git@github.com:Bahmni/openmrs-module-episodes.git</developerConnection>
+		<url>https://github.com/Bahmni/openmrs-module-episodes</url>
+		<tag>HEAD</tag>
+	</scm>
 
 	<modules>
 		<module>api</module>
@@ -18,10 +42,10 @@
 
     <properties>
         <openmrs.platform.version>2.4.2</openmrs.platform.version>
-		<MODULE_ID>episodes</MODULE_ID>
+		<MODULE_ID>${project.artifactId}</MODULE_ID>
 		<MODULE_NAME>${project.name}</MODULE_NAME>
 		<MODULE_VERSION>${project.version}</MODULE_VERSION>
-		<MODULE_PACKAGE>${project.groupId}.${MODULE_ID}</MODULE_PACKAGE>
+		<MODULE_PACKAGE>org.openmrs.module.${MODULE_ID}</MODULE_PACKAGE>
 		<MODULE_DESCRIPTION>${project.description}</MODULE_DESCRIPTION>
 		<REQUIRED_OPENMRS_VERSION>${openmrs.platform.version}</REQUIRED_OPENMRS_VERSION>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,32 +55,68 @@
 		<javaxServletVersion>4.0.1</javaxServletVersion>
 	</properties>
 
+	<distributionManagement>
+		<snapshotRepository>
+			<id>nexus-sonatype</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>nexus-sonatype</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+	</distributionManagement>
+
 	<profiles>
 		<profile>
-			<id>nexus-sonatype</id>
+			<id>release-sign-artifacts</id>
 			<activation>
-				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
 			</activation>
-			<distributionManagement>
-				<snapshotRepository>
-					<id>nexus-sonatype</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-				</snapshotRepository>
-				<repository>
-					<id>nexus-sonatype</id>
-					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-				</repository>
-			</distributionManagement>
-		</profile>
-		<profile>
-			<id>mybahmni-s3</id>
-			<distributionManagement>
-				<snapshotRepository>
-					<id>repo.mybahmni.org</id>
-					<name>bahmni-artifactory-snapshots</name>
-					<url>s3://repo.mybahmni.org/artifactory/snapshot</url>
-				</snapshotRepository>
-			</distributionManagement>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>3.2.1</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>3.2.0</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
     </profiles>
 	<dependencyManagement>
