@@ -55,23 +55,18 @@
 		<javaxServletVersion>4.0.1</javaxServletVersion>
 	</properties>
 
-	<profiles>
-		<profile>
+	<distributionManagement>
+		<snapshotRepository>
 			<id>nexus-sonatype</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<distributionManagement>
-				<snapshotRepository>
-					<id>nexus-sonatype</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-				</snapshotRepository>
-				<repository>
-					<id>nexus-sonatype</id>
-					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-				</repository>
-			</distributionManagement>
-		</profile>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>nexus-sonatype</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+	</distributionManagement>
+
+	<profiles>
 		<profile>
 			<id>mybahmni-s3</id>
 			<distributionManagement>
