@@ -42,7 +42,7 @@
 
     <properties>
         <openmrs.platform.version>2.4.2</openmrs.platform.version>
-		<MODULE_ID>${project.artifactId}</MODULE_ID>
+		<MODULE_ID>episodes</MODULE_ID>
 		<MODULE_NAME>${project.name}</MODULE_NAME>
 		<MODULE_VERSION>${project.version}</MODULE_VERSION>
 		<MODULE_PACKAGE>org.openmrs.module.${MODULE_ID}</MODULE_PACKAGE>
