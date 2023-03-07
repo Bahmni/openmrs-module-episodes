@@ -10,7 +10,7 @@
 	<author>Thoughtworks</author>
 	<description>@MODULE_DESCRIPTION@</description>
 
-	<activator>@MODULE_PACKAGE@.EpisodeActivator</activator>
+	<activator>org.openmrs.module.episodes.EpisodeActivator</activator>
 	
 	<require_version>@openmrs.platform.version@</require_version>
 

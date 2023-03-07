@@ -4,7 +4,7 @@
 
 	<groupId>org.bahmni.module</groupId>
 	<artifactId>episodes</artifactId>
-	<version>1.1.0-SNAPSHOT</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Episodes of Care Module</name>
 	<description>Implementation of Episodes of Care for OpenMRS</description>
@@ -42,7 +42,7 @@
 
     <properties>
         <openmrs.platform.version>2.4.2</openmrs.platform.version>
-		<MODULE_ID>${project.artifactId}</MODULE_ID>
+		<MODULE_ID>episodes</MODULE_ID>
 		<MODULE_NAME>${project.name}</MODULE_NAME>
 		<MODULE_VERSION>${project.version}</MODULE_VERSION>
 		<MODULE_PACKAGE>org.openmrs.module.${MODULE_ID}</MODULE_PACKAGE>
