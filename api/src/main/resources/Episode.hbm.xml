@@ -2,7 +2,7 @@
 <!DOCTYPE hibernate-mapping PUBLIC
         "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
-<hibernate-mapping package="org.bahmni.module.episodes">
+<hibernate-mapping package="org.openmrs.module.episodes">
 
     <class name="org.openmrs.module.episodes.Episode" table="episode">
 
@@ -40,6 +40,28 @@
         <set name="patientPrograms" cascade="save-update" table="episode_patient_program">
             <key column="episode_id"/>
             <many-to-many column="patient_program_id" class="org.openmrs.PatientProgram"/>
+        </set>
+
+        <many-to-one name="patient" column="patient_id" class="org.openmrs.Patient" not-null="false" />
+
+        <property name="status" column="status" length="50" not-null="true">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.openmrs.module.episodes.Episode$Status</param>
+                <param name="useNamed">true</param>
+            </type>
+        </property>
+
+        <property name="dateStarted" type="java.util.Date" column="date_started" not-null="false" length="19" />
+        <property name="dateEnded" type="java.util.Date" column="date_ended" not-null="false" length="19" />
+
+        <set name="episodeReason" cascade="all-delete-orphan" table="episode_reason">
+            <key column="episode_id"/>
+            <one-to-many class="org.openmrs.module.episodes.EpisodeReason"/>
+        </set>
+
+        <set name="attributes" lazy="true" inverse="true" batch-size="100" cascade="all-delete-orphan" order-by="voided asc">
+            <key column="episode_id" />
+            <one-to-many class="org.openmrs.module.episodes.EpisodeAttribute" />
         </set>
     </class>
 </hibernate-mapping>

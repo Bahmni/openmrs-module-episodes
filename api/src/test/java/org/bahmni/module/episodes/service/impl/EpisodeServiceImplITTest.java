@@ -6,12 +6,12 @@ import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.ProgramWorkflowService;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.service.EpisodeService;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -19,7 +19,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
 
 public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
     @Autowired
@@ -76,6 +75,22 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
         Episode episodeForEncounter = episodeService.getEpisodeForEncounter(encounter);
 
         assertThat(episodeForEncounter, is(episode));
+    }
+
+    @Test
+    public void shouldCreateANewEpisodeForPatient() {
+        Episode episode = createAnEpisodeForPatient();
+        assertThat(episode.getId(), is(notNullValue()));
+        Episode savedEpisode = episodeService.get(episode.getId());
+        assertThat(savedEpisode.getEncounters(), is(notNullValue()));
+    }
+
+    private Episode createAnEpisodeForPatient() {
+        Episode episode = new Episode();
+        episode.setPatient(new Patient());
+        episode.setDateCreated(new Date());
+        episodeService.save(episode);
+        return episode;
     }
 
     private Episode createAnEpisode() {

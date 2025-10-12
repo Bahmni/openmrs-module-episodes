@@ -11,6 +11,8 @@ public interface EpisodeService {
 
     Episode get(Integer episodeId);
 
+    Episode getEpisodeByUuid(String uuid);
+
     Episode getEpisodeForPatientProgram(PatientProgram patientProgram);
 
     Episode getEpisodeForEncounter(Encounter encounter);

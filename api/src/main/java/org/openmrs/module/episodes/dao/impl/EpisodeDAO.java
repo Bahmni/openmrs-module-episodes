@@ -11,6 +11,8 @@ public interface EpisodeDAO {
 
     Episode get(Integer episodeId);
 
+    Episode getEpisodeByUuid(String uuid);
+
     Episode getEpisodeForPatientProgram(PatientProgram patientProgram);
 
     Episode getEpisodeForEncounter(Encounter encounter);

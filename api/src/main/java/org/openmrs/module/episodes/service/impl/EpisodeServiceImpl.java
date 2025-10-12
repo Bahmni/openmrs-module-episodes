@@ -28,6 +28,11 @@ public class EpisodeServiceImpl implements EpisodeService {
     }
 
     @Override
+    public Episode getEpisodeByUuid(String uuid) {
+        return episodeDAO.getEpisodeByUuid(uuid);
+    }
+
+    @Override
     public Episode getEpisodeForPatientProgram(PatientProgram patientProgram) {
         return episodeDAO.getEpisodeForPatientProgram(patientProgram);
     }
