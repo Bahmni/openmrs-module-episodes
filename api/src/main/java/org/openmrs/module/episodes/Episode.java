@@ -1,6 +1,7 @@
 package org.openmrs.module.episodes;
 
 import org.openmrs.BaseCustomizableData;
+import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
@@ -19,6 +20,7 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
     private Episode.Status status = Episode.Status.ACTIVE;
     private Date dateStarted;
     private Date dateEnded;
+    private Concept concept;
 
     public Status getStatus() {
         return status;
@@ -51,6 +53,14 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
 
     public void setDateStarted(Date dateStarted) {
         this.dateStarted = dateStarted;
+    }
+
+    public Concept getConcept() {
+        return concept;
+    }
+
+    public void setConcept(Concept concept) {
+        this.concept = concept;
     }
 
     public enum Status {

@@ -166,6 +166,23 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="EOC-20251012-1944" author="angshu" dbms="mysql,mariadb,postgresql">
+        <preConditions onFail="MARK_RAN" onError="WARN">
+            <tableExists tableName="episode"/>
+            <not>
+                <columnExists tableName="episode" columnName="concept_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="episode">
+            <column name="concept_id" type="int">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <addForeignKeyConstraint constraintName="episode_type_concept_id_fk"
+                                 baseTableName="episode" baseColumnNames="concept_id"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"
+        />
+    </changeSet>
     <changeSet id="EOC-20251009-1628" author="angshu" dbms="mysql,mariadb,postgresql">
         <preConditions onFail="MARK_RAN">
             <not>

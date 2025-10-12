@@ -1,6 +1,7 @@
 package org.bahmni.module.episodes.service.impl;
 
 import org.junit.Test;
+import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
@@ -79,16 +80,17 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
 
     @Test
     public void shouldCreateANewEpisodeForPatient() {
-        Episode episode = createAnEpisodeForPatient();
+        Episode episode = createAnEpisodeForPatientWithType();
         assertThat(episode.getId(), is(notNullValue()));
         Episode savedEpisode = episodeService.get(episode.getId());
         assertThat(savedEpisode.getEncounters(), is(notNullValue()));
     }
 
-    private Episode createAnEpisodeForPatient() {
+    private Episode createAnEpisodeForPatientWithType() {
         Episode episode = new Episode();
         episode.setPatient(new Patient());
         episode.setDateCreated(new Date());
+        episode.setConcept(new Concept());
         episodeService.save(episode);
         return episode;
     }
