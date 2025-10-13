@@ -22,7 +22,6 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
     private Date dateStarted;
     private Date dateEnded;
     private Concept concept;
-    private Location location;
 
     public Status getStatus() {
         return status;
@@ -63,14 +62,6 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
 
     public void setConcept(Concept concept) {
         this.concept = concept;
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public void setLocation(Location location) {
-        this.location = location;
     }
 
     public enum Status {

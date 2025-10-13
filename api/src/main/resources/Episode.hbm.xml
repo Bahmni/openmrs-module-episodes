@@ -65,6 +65,5 @@
         </set>
 
         <many-to-one name="concept"  column="concept_id" class="org.openmrs.Concept" not-null="false"/>
-        <many-to-one name="location"  column="location_id" class="org.openmrs.Location" not-null="false"/>
     </class>
 </hibernate-mapping>
