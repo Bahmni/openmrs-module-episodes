@@ -183,6 +183,23 @@
                                  referencedTableName="concept" referencedColumnNames="concept_id"
         />
     </changeSet>
+    <changeSet id="EOC-20251012-1947" author="angshu" dbms="mysql,mariadb,postgresql">
+        <preConditions onFail="MARK_RAN" onError="WARN">
+            <tableExists tableName="episode"/>
+            <not>
+                <columnExists tableName="episode" columnName="location_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="episode">
+            <column name="location_id" type="int">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <addForeignKeyConstraint constraintName="episode_location_id_fk"
+                                 baseTableName="episode" baseColumnNames="location_id"
+                                 referencedTableName="location" referencedColumnNames="location_id"
+        />
+    </changeSet>
     <changeSet id="EOC-20251009-1628" author="angshu" dbms="mysql,mariadb,postgresql">
         <preConditions onFail="MARK_RAN">
             <not>
