@@ -103,15 +103,12 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
         episode.setStatus(Episode.Status.ACTIVE);
         episode.setConcept(createConcept("hospitalization"));
         EpisodeReason reason = new EpisodeReason();
-        reason.setEpisode(episode);
-        Concept concept = conceptService.saveConcept(createConcept("accident"));
-        reason.setReason(concept);
-        episode.getEpisodeReason().add(reason);
+        reason.setReason(createConcept("accident"));
+        episode.addEpisodeReason(reason);
         EpisodeStatusHistory statusHistory = new EpisodeStatusHistory();
-        statusHistory.setEpisode(episode);
         statusHistory.setStatus(Episode.Status.ACTIVE);
         statusHistory.setDateStarted(new Date());
-        episode.getStatusHistory().add(statusHistory);
+        episode.addEpisodeStatusHistory(statusHistory);
         episodeService.save(episode);
         return episode;
     }
@@ -130,7 +127,7 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
         concept.addName(cn);
         concept.setConceptClass(miscClass);
         concept.setDatatype(naDataType);
-        return concept;
+        return conceptService.saveConcept(concept);
     }
 
     private Episode createAnEpisode() {

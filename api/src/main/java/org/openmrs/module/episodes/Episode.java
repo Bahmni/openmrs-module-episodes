@@ -168,4 +168,18 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
     public void setPatient(Patient patient) {
         this.patient = patient;
     }
+
+    public void addEpisodeReason(EpisodeReason reason) {
+        if (reason != null) {
+            reason.setEpisode(this);
+            getEpisodeReason().add(reason);
+        }
+    }
+
+    public void addEpisodeStatusHistory(EpisodeStatusHistory statusHistory) {
+        if (statusHistory != null) {
+            statusHistory.setEpisode(this);
+            getStatusHistory().add(statusHistory);
+        }
+    }
 }
