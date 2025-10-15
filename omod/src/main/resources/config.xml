@@ -36,6 +36,7 @@
 		EpisodeReason.hbm.xml
 		EpisodeAttributeType.hbm.xml
 		EpisodeAttribute.hbm.xml
+		EpisodeStatusHistory.hbm.xml
 	</mappingFiles>
 
 </module>

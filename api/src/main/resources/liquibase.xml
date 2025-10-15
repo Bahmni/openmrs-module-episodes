@@ -312,5 +312,101 @@
                                  referencedTableName="users" referencedColumnNames="user_id" />
     </changeSet>
 
+    <changeSet id="EOC-20251014-1931" author="angshu" dbms="mysql,mariadb,postgresql">
+        <preConditions onFail="MARK_RAN" onError="WARN">
+            <tableExists tableName="episode"/>
+            <not>
+                <columnExists tableName="episode" columnName="care_manager"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="episode">
+            <column name="care_manager" type="int">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <addForeignKeyConstraint constraintName="episode_care_manager_id_fk"
+                                 baseTableName="episode" baseColumnNames="care_manager"
+                                 referencedTableName="users" referencedColumnNames="user_id"
+        />
+    </changeSet>
+    <changeSet id="EOC-20251014-1953" author="angshu" dbms="mysql,mariadb,postgresql">
+        <createTable tableName="episode_visit">
+            <column name="episode_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="visit_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="episode_visit_episode_id_fk"
+                                 baseTableName="episode_visit" baseColumnNames="episode_id"
+                                 referencedTableName="episode" referencedColumnNames="episode_id"
+        />
+        <addForeignKeyConstraint constraintName="episode_visit_visit_id_fk"
+                                 baseTableName="episode_visit" baseColumnNames="visit_id"
+                                 referencedTableName="visit" referencedColumnNames="visit_id"
+        />
+    </changeSet>
+    <changeSet id="EOC-20251014-1957" author="angshu" dbms="mysql,mariadb,postgresql">
+        <createTable tableName="episode_status_history">
+            <column autoIncrement="true" name="episode_status_history_id" type="int">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="episode_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(255)" defaultValue="UNKNOWN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_started" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_ended" type="DATETIME">
+                <constraints nullable="true"/>
+            </column>
+            <column name="creator" type="int">
+                <constraints nullable="true"/>
+            </column>
+            <column name="date_created" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uuid" type="char(38)" >
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <modifySql dbms="mssql">
+            <replace replace="CHAR(38)" with="UNIQUEIDENTIFIER DEFAULT NEWSEQUENTIALID()"/>
+        </modifySql>
+    </changeSet>
+    <changeSet id="EOC-20251014-2005" author="angshu">
+        <addForeignKeyConstraint constraintName="episode_status_history_episode_id_fk"
+                                 baseTableName="episode_status_history" baseColumnNames="episode_id"
+                                 referencedTableName="episode" referencedColumnNames="episode_id"
+        />
+        <addForeignKeyConstraint constraintName="episode_status_history_creator_fk"
+                                 baseTableName="episode_status_history" baseColumnNames="creator"
+                                 referencedTableName="users" referencedColumnNames="user_id" />
+    </changeSet>
+    <changeSet id="EOC-20251015-1411" author="angshu">
+        <preConditions onFail="MARK_RAN" onError="WARN">
+            <tableExists tableName="episode_reason"/>
+            <not>
+                <columnExists tableName="episode_reason" columnName="voided"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="episode_reason">
+            <column defaultValueBoolean="false" name="voided" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="voided_by" type="int"/>
+            <column name="date_voided" type="DATETIME"/>
+            <column name="void_reason" type="varchar(255)"/>
+        </addColumn>
+        <addForeignKeyConstraint constraintName="episode_reason_voided_by_fk"
+                                 baseTableName="episode_reason" baseColumnNames="voided_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"
+        />
+    </changeSet>
+
 
 </databaseChangeLog>

@@ -3,9 +3,10 @@ package org.openmrs.module.episodes;
 import org.openmrs.BaseCustomizableData;
 import org.openmrs.Concept;
 import org.openmrs.Encounter;
-import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
+import org.openmrs.User;
+import org.openmrs.Visit;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -22,6 +23,9 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
     private Date dateStarted;
     private Date dateEnded;
     private Concept concept;
+    private Set<EpisodeStatusHistory> statusHistory = new HashSet<>();
+    private User careManager;
+    private Set<Visit> visits = new HashSet<>();
 
     public Status getStatus() {
         return status;
@@ -64,8 +68,33 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
         this.concept = concept;
     }
 
+    public User getCareManager() {
+        return careManager;
+    }
+
+    public void setCareManager(User careManager) {
+        this.careManager = careManager;
+    }
+
+    public Set<EpisodeStatusHistory> getStatusHistory() {
+        return statusHistory;
+    }
+
+    public void setStatusHistory(Set<EpisodeStatusHistory> statusHistory) {
+        this.statusHistory = statusHistory;
+    }
+
+    public Set<Visit> getVisits() {
+        return visits;
+    }
+
+    public void setVisits(Set<Visit> visits) {
+        this.visits = visits;
+    }
+
     public enum Status {
         UNKNOWN,
+        WAITLIST,
         PLANNED,
         ACTIVE,
         ONHOLD,

@@ -8,7 +8,7 @@
 
         <id name="episodeId" type="java.lang.Integer" column="episode_id">
             <generator class="native">
-                <param name="sequence">episode_id</param>
+                <param name="sequence">episode_episode_id_seq</param>
             </generator>
         </id>
 
@@ -32,7 +32,7 @@
             <column name="changed_by" />
         </many-to-one>
 
-        <set name="encounters" cascade="save-update" table="episode_encounter">
+        <set name="encounters" cascade="save-update" table="episode_encounter" lazy="true" batch-size="50">
             <key column="episode_id"/>
             <many-to-many column="encounter_id" class="org.openmrs.Encounter"/>
         </set>
@@ -65,5 +65,20 @@
         </set>
 
         <many-to-one name="concept"  column="concept_id" class="org.openmrs.Concept" not-null="false"/>
+
+        <many-to-one name="careManager" class="org.openmrs.User" not-null="true">
+            <column name="care_manager" />
+        </many-to-one>
+
+        <set name="statusHistory" cascade="all-delete-orphan" table="episode_status_history">
+            <key column="episode_id"/>
+            <one-to-many class="org.openmrs.module.episodes.EpisodeStatusHistory"/>
+        </set>
+
+        <set name="visits" cascade="save-update" table="episode_visit" lazy="true" batch-size="50">
+            <key column="episode_id"/>
+            <many-to-many column="visit_id" class="org.openmrs.Visit"/>
+        </set>
+
     </class>
 </hibernate-mapping>

@@ -14,6 +14,10 @@ public class EpisodeReason extends BaseOpenmrsObject {
     private Date dateCreated;
     private Concept reason;
     private Episode episode;
+    private Boolean voided = Boolean.FALSE;
+    private Date dateVoided;
+    private User voidedBy;
+    private String voidReason;
 
     public Integer getEpisodeReasonId() {
         return episodeReasonId;
@@ -66,5 +70,37 @@ public class EpisodeReason extends BaseOpenmrsObject {
 
     public void setEpisode(Episode episode) {
         this.episode = episode;
+    }
+
+    public Boolean getVoided() {
+        return voided;
+    }
+
+    public void setVoided(Boolean voided) {
+        this.voided = voided;
+    }
+
+    public Date getDateVoided() {
+        return dateVoided;
+    }
+
+    public void setDateVoided(Date dateVoided) {
+        this.dateVoided = dateVoided;
+    }
+
+    public User getVoidedBy() {
+        return voidedBy;
+    }
+
+    public void setVoidedBy(User voidedBy) {
+        this.voidedBy = voidedBy;
+    }
+
+    public String getVoidReason() {
+        return voidReason;
+    }
+
+    public void setVoidReason(String voidReason) {
+        this.voidReason = voidReason;
     }
 }

@@ -9,5 +9,6 @@
 		<mapping resource="EpisodeReason.hbm.xml"/>
 		<mapping resource="EpisodeAttributeType.hbm.xml"/>
 		<mapping resource="EpisodeAttribute.hbm.xml"/>
+		<mapping resource="EpisodeStatusHistory.hbm.xml"/>
 	</session-factory>
 </hibernate-configuration>

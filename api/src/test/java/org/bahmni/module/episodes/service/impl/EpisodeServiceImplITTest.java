@@ -2,17 +2,24 @@ package org.bahmni.module.episodes.service.impl;
 
 import org.junit.Test;
 import org.openmrs.Concept;
+import org.openmrs.ConceptClass;
+import org.openmrs.ConceptDatatype;
+import org.openmrs.ConceptName;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
+import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.module.episodes.Episode;
+import org.openmrs.module.episodes.EpisodeReason;
+import org.openmrs.module.episodes.EpisodeStatusHistory;
 import org.openmrs.module.episodes.service.EpisodeService;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
+import java.util.Locale;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,6 +37,9 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
 
     @Autowired
     private EncounterService encounterService;
+
+    @Autowired
+    private ConceptService conceptService;
 
     @Test
     public void shouldCreateANewEpisode() {
@@ -80,19 +90,47 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
 
     @Test
     public void shouldCreateANewEpisodeForPatient() {
-        Episode episode = createAnEpisodeForPatientWithType();
+        Episode episode = createAnEpisodeForPatientWithTypeAndReason();
         assertThat(episode.getId(), is(notNullValue()));
         Episode savedEpisode = episodeService.get(episode.getId());
         assertThat(savedEpisode.getEncounters(), is(notNullValue()));
     }
 
-    private Episode createAnEpisodeForPatientWithType() {
+    private Episode createAnEpisodeForPatientWithTypeAndReason() {
         Episode episode = new Episode();
         episode.setPatient(new Patient());
         episode.setDateCreated(new Date());
-        episode.setConcept(new Concept());
+        episode.setStatus(Episode.Status.ACTIVE);
+        episode.setConcept(createConcept("hospitalization"));
+        EpisodeReason reason = new EpisodeReason();
+        reason.setEpisode(episode);
+        Concept concept = conceptService.saveConcept(createConcept("accident"));
+        reason.setReason(concept);
+        episode.getEpisodeReason().add(reason);
+        EpisodeStatusHistory statusHistory = new EpisodeStatusHistory();
+        statusHistory.setEpisode(episode);
+        statusHistory.setStatus(Episode.Status.ACTIVE);
+        statusHistory.setDateStarted(new Date());
+        episode.getStatusHistory().add(statusHistory);
         episodeService.save(episode);
         return episode;
+    }
+
+    private ConceptClass findConceptClass(String className) {
+        return conceptService.getConceptClassByName(className);
+    }
+
+    private Concept createConcept(String name) {
+        Concept concept = new Concept();
+        ConceptName cn = new ConceptName();
+        cn.setName(name);
+        cn.setLocale(Locale.ENGLISH);
+        ConceptDatatype naDataType = conceptService.getConceptDatatypeByUuid(ConceptDatatype.N_A_UUID);
+        ConceptClass miscClass = findConceptClass("Misc");
+        concept.addName(cn);
+        concept.setConceptClass(miscClass);
+        concept.setDatatype(naDataType);
+        return concept;
     }
 
     private Episode createAnEpisode() {
