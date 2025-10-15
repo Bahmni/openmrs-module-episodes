@@ -182,4 +182,8 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
             getStatusHistory().add(statusHistory);
         }
     }
+
+    public boolean hasStatusHistory() {
+        return statusHistory != null && !statusHistory.isEmpty();
+    }
 }
