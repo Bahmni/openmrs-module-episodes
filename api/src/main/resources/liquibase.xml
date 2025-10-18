@@ -82,18 +82,26 @@
             <column name="episode_id" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="concept_id" type="int">
-                <constraints nullable="false"/>
+            <column name="use_concept_id" type="int">
+                <constraints nullable="true"/>
             </column>
             <column name="creator" type="int">
                 <constraints nullable="true"/>
             </column>
+            <column name="value_concept_id" type="int"/>
+            <column name="value_reference" type="varchar(255)"/>
             <column name="date_created" type="DATETIME">
                 <constraints nullable="false"/>
             </column>
             <column name="uuid" type="char(38)" >
                 <constraints nullable="false"/>
             </column>
+            <column name="voided" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="voided_by" type="int"/>
+            <column name="void_reason" type="varchar(255)"/>
+            <column name="date_voided" type="DATETIME"/>
         </createTable>
         <modifySql dbms="mssql">
             <replace replace="CHAR(38)" with="UNIQUEIDENTIFIER DEFAULT NEWSEQUENTIALID()"/>
@@ -107,9 +115,17 @@
                                  baseTableName="episode_reason" baseColumnNames="episode_id"
                                  referencedTableName="episode" referencedColumnNames="episode_id"
         />
-        <addForeignKeyConstraint constraintName="episode_encounter_concept_id_fk"
-                                 baseTableName="episode_reason" baseColumnNames="concept_id"
+        <addForeignKeyConstraint constraintName="episode_encounter_use_concept_id_fk"
+                                 baseTableName="episode_reason" baseColumnNames="use_concept_id"
                                  referencedTableName="concept" referencedColumnNames="concept_id"
+        />
+        <addForeignKeyConstraint constraintName="episode_encounter_value_concept_id_fk"
+                                 baseTableName="episode_reason" baseColumnNames="value_concept_id"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"
+        />
+        <addForeignKeyConstraint constraintName="episode_reason_voided_by_fk"
+                                 baseTableName="episode_reason" baseColumnNames="voided_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"
         />
     </changeSet>
 
@@ -125,73 +141,33 @@
             <column name="patient_id" type="INT">
                 <constraints nullable="true"/>
             </column>
-        </addColumn>
-    </changeSet>
-    <changeSet id="EOC-20251009-1443" author="angshu" dbms="mysql,mariadb,postgresql">
-        <preConditions onFail="MARK_RAN" onError="WARN">
-            <tableExists tableName="episode"/>
-            <not>
-                <columnExists tableName="episode" columnName="status"/>
-            </not>
-        </preConditions>
-        <addColumn tableName="episode">
-            <column name="status" type="varchar(255)" defaultValue="UNKNOWN">
+            <column name="status" type="varchar(20)">
                 <constraints nullable="true"/>
             </column>
-        </addColumn>
-    </changeSet>
-    <changeSet id="EOC-20251009-1601" author="angshu" dbms="mysql,mariadb,postgresql">
-        <preConditions onFail="MARK_RAN" onError="WARN">
-            <tableExists tableName="episode"/>
-            <not>
-                <columnExists tableName="episode" columnName="date_started"/>
-            </not>
-        </preConditions>
-        <addColumn tableName="episode">
             <column name="date_started" type="DATETIME" valueComputed="date_created">
                 <constraints nullable="true"/>
             </column>
-        </addColumn>
-    </changeSet>
-    <changeSet id="EOC-20251009-1558" author="angshu" dbms="mysql,mariadb,postgresql">
-        <preConditions onFail="MARK_RAN" onError="WARN">
-            <tableExists tableName="episode"/>
-            <not>
-                <columnExists tableName="episode" columnName="date_ended"/>
-            </not>
-        </preConditions>
-        <addColumn tableName="episode">
             <column name="date_ended" type="DATETIME">
                 <constraints nullable="true"/>
             </column>
-        </addColumn>
-    </changeSet>
-    <changeSet id="EOC-20251012-1944" author="angshu" dbms="mysql,mariadb,postgresql">
-        <preConditions onFail="MARK_RAN" onError="WARN">
-            <tableExists tableName="episode"/>
-            <not>
-                <columnExists tableName="episode" columnName="concept_id"/>
-            </not>
-        </preConditions>
-        <addColumn tableName="episode">
             <column name="concept_id" type="int">
                 <constraints nullable="true"/>
             </column>
+            <column name="care_manager" type="int">
+                <constraints nullable="true"/>
+            </column>
         </addColumn>
+        <addForeignKeyConstraint constraintName="episode_patient_fk"
+                                 baseTableName="episode" baseColumnNames="patient_id"
+                                 referencedTableName="patient" referencedColumnNames="patient_id"/>
         <addForeignKeyConstraint constraintName="episode_type_concept_id_fk"
                                  baseTableName="episode" baseColumnNames="concept_id"
                                  referencedTableName="concept" referencedColumnNames="concept_id"
         />
-    </changeSet>
-    <changeSet id="EOC-20251009-1628" author="angshu" dbms="mysql,mariadb,postgresql">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="episode" />
-            </not>
-        </preConditions>
-        <addForeignKeyConstraint baseTableName="episode" baseColumnNames="patient_id"
-                                 constraintName="episode_patient_fk"
-                                 referencedTableName="patient" referencedColumnNames="patient_id"/>
+        <addForeignKeyConstraint constraintName="episode_care_manager_id_fk"
+                                 baseTableName="episode" baseColumnNames="care_manager"
+                                 referencedTableName="users" referencedColumnNames="user_id"
+        />
     </changeSet>
     <changeSet id="EOC-20251009-1651" author="angshu">
         <preConditions onFail="MARK_RAN">
@@ -203,10 +179,10 @@
             <column name="episode_attribute_type_id" type="int" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false" />
             </column>
-            <column name="name" type="varchar(255)">
+            <column name="name" type="varchar(100)">
                 <constraints nullable="false" />
             </column>
-            <column name="description" type="varchar(1024)" />
+            <column name="description" type="varchar(255)" />
             <column name="datatype" type="varchar(255)" />
             <column name="datatype_config" type="text" />
             <column name="preferred_handler" type="varchar(255)" />
@@ -243,13 +219,13 @@
                 <tableExists tableName="episode_attribute_type" />
             </not>
         </preConditions>
-        <addForeignKeyConstraint constraintName="episode_attribute_creator_fk"
+        <addForeignKeyConstraint constraintName="episode_attribute_type_creator_fk"
                                  baseTableName="episode_attribute_type" baseColumnNames="creator"
                                  referencedTableName="users" referencedColumnNames="user_id" />
-        <addForeignKeyConstraint constraintName="episode_attribute_changed_by_fk"
+        <addForeignKeyConstraint constraintName="episode_attribute_type_changed_by_fk"
                                  baseTableName="episode_attribute_type" baseColumnNames="changed_by"
                                  referencedTableName="users" referencedColumnNames="user_id" />
-        <addForeignKeyConstraint constraintName="episode_attribute_voided_by_fk"
+        <addForeignKeyConstraint constraintName="episode_attribute_type_retired_by_fk"
                                  baseTableName="episode_attribute_type" baseColumnNames="retired_by"
                                  referencedTableName="users" referencedColumnNames="user_id" />
     </changeSet>
@@ -294,13 +270,6 @@
         <addForeignKeyConstraint constraintName="episode_attribute_episode_id_fk"
                                  baseTableName="episode_attribute" baseColumnNames="episode_id"
                                  referencedTableName="episode" referencedColumnNames="episode_id" />
-    </changeSet>
-    <changeSet id="EOC-20251011-2006" author="angshu">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="episode_attribute" />
-            </not>
-        </preConditions>
         <addForeignKeyConstraint constraintName="episode_attribute_creator_fk"
                                  baseTableName="episode_attribute" baseColumnNames="creator"
                                  referencedTableName="users" referencedColumnNames="user_id" />
@@ -312,23 +281,6 @@
                                  referencedTableName="users" referencedColumnNames="user_id" />
     </changeSet>
 
-    <changeSet id="EOC-20251014-1931" author="angshu" dbms="mysql,mariadb,postgresql">
-        <preConditions onFail="MARK_RAN" onError="WARN">
-            <tableExists tableName="episode"/>
-            <not>
-                <columnExists tableName="episode" columnName="care_manager"/>
-            </not>
-        </preConditions>
-        <addColumn tableName="episode">
-            <column name="care_manager" type="int">
-                <constraints nullable="true"/>
-            </column>
-        </addColumn>
-        <addForeignKeyConstraint constraintName="episode_care_manager_id_fk"
-                                 baseTableName="episode" baseColumnNames="care_manager"
-                                 referencedTableName="users" referencedColumnNames="user_id"
-        />
-    </changeSet>
     <changeSet id="EOC-20251014-1953" author="angshu" dbms="mysql,mariadb,postgresql">
         <createTable tableName="episode_visit">
             <column name="episode_id" type="int">
@@ -355,7 +307,7 @@
             <column name="episode_id" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="status" type="varchar(255)" defaultValue="UNKNOWN">
+            <column name="status" type="varchar(20)">
                 <constraints nullable="false"/>
             </column>
             <column name="date_started" type="DATETIME">
@@ -387,26 +339,5 @@
                                  baseTableName="episode_status_history" baseColumnNames="creator"
                                  referencedTableName="users" referencedColumnNames="user_id" />
     </changeSet>
-    <changeSet id="EOC-20251015-1411" author="angshu">
-        <preConditions onFail="MARK_RAN" onError="WARN">
-            <tableExists tableName="episode_reason"/>
-            <not>
-                <columnExists tableName="episode_reason" columnName="voided"/>
-            </not>
-        </preConditions>
-        <addColumn tableName="episode_reason">
-            <column defaultValueBoolean="false" name="voided" type="BOOLEAN">
-                <constraints nullable="false"/>
-            </column>
-            <column name="voided_by" type="int"/>
-            <column name="date_voided" type="DATETIME"/>
-            <column name="void_reason" type="varchar(255)"/>
-        </addColumn>
-        <addForeignKeyConstraint constraintName="episode_reason_voided_by_fk"
-                                 baseTableName="episode_reason" baseColumnNames="voided_by"
-                                 referencedTableName="users" referencedColumnNames="user_id"
-        />
-    </changeSet>
-
 
 </databaseChangeLog>

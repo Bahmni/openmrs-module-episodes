@@ -11,7 +11,7 @@
             </generator>
         </id>
         <property name="uuid" type="java.lang.String"  column="uuid" length="38" unique="true" />
-        <many-to-one name="reason"  column="concept_id" class="org.openmrs.Concept" not-null="true"/>
+        <many-to-one name="reasonUse" column="use_concept_id" class="org.openmrs.Concept" not-null="false"/>
 
         <many-to-one name="episode"  column="episode_id" class="org.openmrs.module.episodes.Episode" not-null="true"/>
         <many-to-one name="creator" column="creator" class="org.openmrs.User" not-null="true"/>
@@ -21,5 +21,8 @@
         <many-to-one name="voidedBy" class="org.openmrs.User" column="voided_by"   not-null="false"/>
         <property name="dateVoided" type="java.util.Date"     column="date_voided" not-null="false" length="19" />
         <property name="voidReason" type="java.lang.String"   column="void_reason" length="255" />
+
+        <many-to-one name="valueConcept" class="org.openmrs.Concept" column="value_concept_id" not-null="true"/>
+        <property name="valueReference" type="java.lang.String"   column="value_reference" length="255" />
     </class>
 </hibernate-mapping>

@@ -103,8 +103,8 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
         episode.setStatus(Episode.Status.ACTIVE);
         episode.setConcept(createConcept("hospitalization"));
         EpisodeReason reason = new EpisodeReason();
-        reason.setReason(createConcept("accident"));
         episode.addEpisodeReason(reason);
+        reason.setValueConcept(createConcept("accident"));
         EpisodeStatusHistory statusHistory = new EpisodeStatusHistory();
         statusHistory.setStatus(Episode.Status.ACTIVE);
         statusHistory.setDateStarted(new Date());
