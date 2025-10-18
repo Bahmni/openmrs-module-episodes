@@ -213,12 +213,7 @@
             <replace replace="CHAR(38)" with="UNIQUEIDENTIFIER DEFAULT NEWSEQUENTIALID()"/>
         </modifySql>
     </changeSet>
-    <changeSet id="EOC-20251009-1652" author="angshu">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="episode_attribute_type" />
-            </not>
-        </preConditions>
+    <changeSet id="EOC-20251009-1655" author="angshu">
         <addForeignKeyConstraint constraintName="episode_attribute_type_creator_fk"
                                  baseTableName="episode_attribute_type" baseColumnNames="creator"
                                  referencedTableName="users" referencedColumnNames="user_id" />
@@ -258,12 +253,7 @@
             <replace replace="CHAR(38)" with="UNIQUEIDENTIFIER DEFAULT NEWSEQUENTIALID()"/>
         </modifySql>
     </changeSet>
-    <changeSet author="angshu" id="20251009-1656">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="episode_attribute" />
-            </not>
-        </preConditions>
+    <changeSet author="angshu" id="20251009-1657">
         <addForeignKeyConstraint constraintName="episode_attribute_attribute_type_id_fk"
                                  baseTableName="episode_attribute" baseColumnNames="attribute_type_id"
                                  referencedTableName="episode_attribute_type" referencedColumnNames="episode_attribute_type_id"/>
