@@ -3,7 +3,7 @@ package org.openmrs.module.episodes.service.impl;
 import org.openmrs.Encounter;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.dao.impl.EpisodeDAO;
+import org.openmrs.module.episodes.dao.EpisodeDAO;
 import org.openmrs.module.episodes.service.EpisodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

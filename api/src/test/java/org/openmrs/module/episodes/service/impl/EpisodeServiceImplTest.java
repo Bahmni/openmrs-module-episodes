@@ -6,8 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.openmrs.Encounter;
-import org.openmrs.module.episodes.dao.impl.EpisodeDAO;
-import org.openmrs.module.episodes.service.impl.EpisodeServiceImpl;
+import org.openmrs.module.episodes.dao.EpisodeDAO;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

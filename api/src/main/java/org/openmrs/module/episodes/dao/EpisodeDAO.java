@@ -1,4 +1,4 @@
-package org.openmrs.module.episodes.dao.impl;
+package org.openmrs.module.episodes.dao;
 
 import org.openmrs.Encounter;
 import org.openmrs.PatientProgram;

@@ -192,18 +192,6 @@
 				<version>${webServices.version}</version>
 				<scope>provided</scope>
 			</dependency>
-			<dependency>
-				<groupId>org.openmrs.module</groupId>
-				<artifactId>webservices.rest-omod-common</artifactId>
-				<version>${webServices.version}</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.openmrs.module</groupId>
-				<artifactId>webservices.rest-omod</artifactId>
-				<version>${webServices.version}</version>
-				<scope>provided</scope>
-			</dependency>
         </dependencies>
 	</dependencyManagement>
 

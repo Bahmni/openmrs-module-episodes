@@ -6,6 +6,7 @@ import org.openmrs.PatientProgram;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.module.episodes.Episode;
+import org.openmrs.module.episodes.dao.EpisodeDAO;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 

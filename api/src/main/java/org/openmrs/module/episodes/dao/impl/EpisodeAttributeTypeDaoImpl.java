@@ -1,10 +1,10 @@
-package org.openmrs.module.episodes.dao.impl.impl;
+package org.openmrs.module.episodes.dao.impl;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.openmrs.module.episodes.EpisodeAttributeType;
-import org.openmrs.module.episodes.dao.impl.EpisodeAttributeTypeDao;
+import org.openmrs.module.episodes.dao.EpisodeAttributeTypeDao;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
