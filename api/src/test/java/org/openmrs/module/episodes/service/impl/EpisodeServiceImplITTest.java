@@ -1,4 +1,4 @@
-package org.bahmni.module.episodes.service.impl;
+package org.openmrs.module.episodes.service.impl;
 
 import org.junit.Test;
 import org.openmrs.Concept;

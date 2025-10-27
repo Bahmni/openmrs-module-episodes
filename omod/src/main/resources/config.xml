@@ -13,6 +13,9 @@
 	<activator>org.openmrs.module.episodes.EpisodeActivator</activator>
 	
 	<require_version>@openmrs.platform.version@</require_version>
+	<require_modules>
+		<require_module>org.openmrs.module.webservices.rest</require_module>
+	</require_modules>
 
 	<privilege>
 		<name>Get Episodes</name>
@@ -29,6 +32,15 @@
 	<privilege>
 		<name>Delete Episodes</name>
 		<description>Ability to delete episodes</description>
+	</privilege>
+
+	<privilege>
+		<name>Get Episode Attribute Types</name>
+		<description>Able to view Episode Attribute Types</description>
+	</privilege>
+	<privilege>
+		<name>Manage Episode Attribute Types</name>
+		<description>Ability to add/edit/retire Episode Attribute Types</description>
 	</privilege>
 
 	<mappingFiles>
