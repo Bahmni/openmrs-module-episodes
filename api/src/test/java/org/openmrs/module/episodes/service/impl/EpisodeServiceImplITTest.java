@@ -12,14 +12,21 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.module.episodes.Episode;
+import org.openmrs.module.episodes.EpisodeAttribute;
+import org.openmrs.module.episodes.EpisodeAttributeType;
 import org.openmrs.module.episodes.EpisodeReason;
 import org.openmrs.module.episodes.EpisodeStatusHistory;
+import org.openmrs.module.episodes.service.EpisodeAttributeTypeService;
 import org.openmrs.module.episodes.service.EpisodeService;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -27,6 +34,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.openmrs.module.episodes.service.impl.TestHelper.exampleAttributeTypeInsuranceCaseNumber;
+import static org.openmrs.module.episodes.service.impl.TestHelper.exampleAttributeTypeIsAccidentCase;
 
 public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
     @Autowired
@@ -40,6 +51,9 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
 
     @Autowired
     private ConceptService conceptService;
+
+    @Autowired
+    private EpisodeAttributeTypeService attributeTypeService;
 
     @Test
     public void shouldCreateANewEpisode() {
@@ -90,14 +104,37 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
 
     @Test
     public void shouldCreateANewEpisodeForPatient() {
-        Episode episode = createAnEpisodeForPatientWithTypeAndReason();
+        Episode episode = createAnEpisodeForPatientWithTypeAndReason(Collections.emptyList());
         assertThat(episode.getId(), is(notNullValue()));
         Episode savedEpisode = episodeService.get(episode.getId());
         assertThat(savedEpisode.getEncounters(), is(notNullValue()));
     }
 
-    private Episode createAnEpisodeForPatientWithTypeAndReason() {
-        Episode episode = new Episode();
+    @Test
+    public void shouldCreateNewEpisodeForPatientWithAttribute() {
+        EpisodeAttributeType caseNumberAttributeType = attributeTypeService.save(exampleAttributeTypeInsuranceCaseNumber());
+        EpisodeAttributeType accidentCaseAttributeType = attributeTypeService.save(exampleAttributeTypeIsAccidentCase());
+
+        List<EpisodeAttribute> episodeAttributes = Arrays.asList(
+                exampleAttributeFromType(caseNumberAttributeType, "CN-1234"),
+                exampleAttributeFromType(accidentCaseAttributeType, Boolean.TRUE.toString())
+        );
+        Episode episode = createAnEpisodeForPatientWithTypeAndReason(episodeAttributes);
+        assertEquals(2, episode.getActiveAttributes().size());
+        Optional<EpisodeAttribute> caseNumber = episode.getActiveAttributes().stream().filter(e -> e.getValueReference().equals("CN-1234")).findFirst();
+        assertTrue(caseNumber.isPresent());
+        assertTrue(!caseNumber.get().getUuid().isEmpty());
+    }
+
+    private EpisodeAttribute exampleAttributeFromType(EpisodeAttributeType caseNumberAttributeType, String value) {
+        EpisodeAttribute attribute = new EpisodeAttribute();
+        attribute.setAttributeType(caseNumberAttributeType);
+        attribute.setValueReferenceInternal(value);
+        return attribute;
+    }
+
+    private Episode createAnEpisodeForPatientWithTypeAndReason(List<EpisodeAttribute> episodeAttributes) {
+        final Episode episode = new Episode();
         episode.setPatient(new Patient());
         episode.setDateCreated(new Date());
         episode.setStatus(Episode.Status.ACTIVE);
@@ -109,6 +146,7 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
         statusHistory.setStatus(Episode.Status.ACTIVE);
         statusHistory.setDateStarted(new Date());
         episode.addEpisodeStatusHistory(statusHistory);
+        episodeAttributes.forEach(attribute -> episode.addAttribute(attribute));
         episodeService.save(episode);
         return episode;
     }

@@ -9,6 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+import static org.openmrs.module.episodes.service.impl.TestHelper.exampleAttributeTypeInsuranceCaseNumber;
+import static org.openmrs.module.episodes.service.impl.TestHelper.exampleAttributeTypeInsuranceId;
+import static org.openmrs.module.episodes.service.impl.TestHelper.exampleAttributeTypeIsAccidentCase;
+
 public class EpisodeAttributeTypeServiceImplITTest extends BaseModuleContextSensitiveTest {
 
     @Autowired
@@ -16,14 +20,14 @@ public class EpisodeAttributeTypeServiceImplITTest extends BaseModuleContextSens
 
     @Test
     public void shouldCreateNewEpisodeAttributeType() {
-        EpisodeAttributeType caseNumberAttributeType = exampleAttributeTypeInsuranceCase();
+        EpisodeAttributeType caseNumberAttributeType = exampleAttributeTypeInsuranceCaseNumber();
         EpisodeAttributeType attributeType = attributeTypeService.save(caseNumberAttributeType);
         Assert.assertTrue("Created episode attribute must have a UUID", !attributeType.getUuid().isEmpty());
     }
 
     @Test
     public void getAttributeTypeByUuid() {
-        EpisodeAttributeType caseAttributeType = attributeTypeService.save(exampleAttributeTypeInsuranceCase());
+        EpisodeAttributeType caseAttributeType = attributeTypeService.save(exampleAttributeTypeInsuranceCaseNumber());
         EpisodeAttributeType insuranceIdAttributeType = attributeTypeService.save(exampleAttributeTypeInsuranceId());
         EpisodeAttributeType attributeType = attributeTypeService.getAttributeTypeByUuid(caseAttributeType.getUuid());
         Assert.assertEquals(caseAttributeType, attributeType);
@@ -32,7 +36,7 @@ public class EpisodeAttributeTypeServiceImplITTest extends BaseModuleContextSens
 
     @Test
     public void shouldGetMultipleNonRetiredEpisodeAttributeTypes() {
-        attributeTypeService.save(exampleAttributeTypeInsuranceCase());
+        attributeTypeService.save(exampleAttributeTypeInsuranceCaseNumber());
         attributeTypeService.save(exampleAttributeTypeInsuranceId());
         List<EpisodeAttributeType> allAttributeTypes = attributeTypeService.getAllAttributeTypes(false);
         Assert.assertEquals(2, allAttributeTypes.size());
@@ -40,7 +44,7 @@ public class EpisodeAttributeTypeServiceImplITTest extends BaseModuleContextSens
 
     @Test
     public void shouldRetireAnEpisodeAttributeType() {
-        EpisodeAttributeType caseAttributeType = attributeTypeService.save(exampleAttributeTypeInsuranceCase());
+        EpisodeAttributeType caseAttributeType = attributeTypeService.save(exampleAttributeTypeInsuranceCaseNumber());
         Assert.assertTrue(!caseAttributeType.getRetired());
         EpisodeAttributeType retired = attributeTypeService.retire(caseAttributeType, "entered-in-error");
         Assert.assertTrue(retired.getRetired());
@@ -48,29 +52,16 @@ public class EpisodeAttributeTypeServiceImplITTest extends BaseModuleContextSens
 
     @Test
     public void shouldSearchEpisodeAttributeTypesByName() {
-        attributeTypeService.save(exampleAttributeTypeInsuranceCase());
+        attributeTypeService.save(exampleAttributeTypeInsuranceCaseNumber());
         attributeTypeService.save(exampleAttributeTypeInsuranceId());
+        attributeTypeService.save(exampleAttributeTypeIsAccidentCase());
         List<EpisodeAttributeType> allAttributeTypes = attributeTypeService.getAttributesByName("Insurance");
         Assert.assertEquals(2, allAttributeTypes.size());
         List<EpisodeAttributeType> matches = attributeTypeService.getAttributesByName("Insurance case");
         Assert.assertEquals(1, matches.size());
     }
 
-    private EpisodeAttributeType exampleAttributeTypeInsuranceCase() {
-        EpisodeAttributeType episodeAttributeType = new EpisodeAttributeType();
-        episodeAttributeType.setName("Insurance case Number");
-        episodeAttributeType.setDescription("Insurance Case Number For Episode");
-        episodeAttributeType.setDatatypeClassname("org.openmrs.customdatatype.datatype.FreeTextDatatype");
-        episodeAttributeType.setMinOccurs(0);
-        return episodeAttributeType;
-    }
 
-    private EpisodeAttributeType exampleAttributeTypeInsuranceId() {
-        EpisodeAttributeType episodeAttributeType = new EpisodeAttributeType();
-        episodeAttributeType.setName("Insurance ID");
-        episodeAttributeType.setDescription("Insurance ID associated with Episode");
-        episodeAttributeType.setDatatypeClassname("org.openmrs.customdatatype.datatype.FloatDatatype");
-        episodeAttributeType.setMinOccurs(0);
-        return episodeAttributeType;
-    }
+
+
 }
