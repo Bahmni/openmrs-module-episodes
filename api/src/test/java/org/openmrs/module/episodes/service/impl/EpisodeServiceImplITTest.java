@@ -8,9 +8,14 @@ import org.openmrs.ConceptName;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
+import org.openmrs.Person;
+import org.openmrs.PersonName;
+import org.openmrs.Provider;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
+import org.openmrs.api.PersonService;
 import org.openmrs.api.ProgramWorkflowService;
+import org.openmrs.api.ProviderService;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.EpisodeAttribute;
 import org.openmrs.module.episodes.EpisodeAttributeType;
@@ -51,6 +56,12 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
 
     @Autowired
     private ConceptService conceptService;
+
+    @Autowired
+    private ProviderService providerService;
+
+    @Autowired
+    private PersonService personService;
 
     @Autowired
     private EpisodeAttributeTypeService attributeTypeService;
@@ -104,7 +115,8 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
 
     @Test
     public void shouldCreateANewEpisodeForPatient() {
-        Episode episode = createAnEpisodeForPatientWithTypeAndReason(Collections.emptyList());
+        Provider drJones = createProvider("Dr Jones");
+        Episode episode = createAnEpisodeForPatientWithTypeAndReason(Collections.emptyList(), drJones);
         assertThat(episode.getId(), is(notNullValue()));
         Episode savedEpisode = episodeService.get(episode.getId());
         assertThat(savedEpisode.getEncounters(), is(notNullValue()));
@@ -119,7 +131,7 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
                 exampleAttributeFromType(caseNumberAttributeType, "CN-1234"),
                 exampleAttributeFromType(accidentCaseAttributeType, Boolean.TRUE.toString())
         );
-        Episode episode = createAnEpisodeForPatientWithTypeAndReason(episodeAttributes);
+        Episode episode = createAnEpisodeForPatientWithTypeAndReason(episodeAttributes, null);
         assertEquals(2, episode.getActiveAttributes().size());
         Optional<EpisodeAttribute> caseNumber = episode.getActiveAttributes().stream().filter(e -> e.getValueReference().equals("CN-1234")).findFirst();
         assertTrue(caseNumber.isPresent());
@@ -133,12 +145,15 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
         return attribute;
     }
 
-    private Episode createAnEpisodeForPatientWithTypeAndReason(List<EpisodeAttribute> episodeAttributes) {
+    private Episode createAnEpisodeForPatientWithTypeAndReason(List<EpisodeAttribute> episodeAttributes, Provider careManager) {
         final Episode episode = new Episode();
         episode.setPatient(new Patient());
         episode.setDateCreated(new Date());
         episode.setStatus(Episode.Status.ACTIVE);
         episode.setConcept(createConcept("hospitalization"));
+        if (careManager != null) {
+            episode.setCareManager(careManager);
+        }
         EpisodeReason reason = new EpisodeReason();
         episode.addEpisodeReason(reason);
         reason.setValueConcept(createConcept("accident"));
@@ -166,6 +181,20 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
         concept.setConceptClass(miscClass);
         concept.setDatatype(naDataType);
         return conceptService.saveConcept(concept);
+    }
+
+    private Provider createProvider(String name) {
+        Person person = new Person();
+        PersonName personName = new PersonName();
+        personName.setGivenName("Random");
+        personName.setFamilyName("Person");
+        person.addName(personName);
+        personService.savePerson(person);
+        Provider provider = new Provider();
+        provider.setName(name);
+        provider.setPerson(person);
+        providerService.saveProvider(provider);
+        return provider;
     }
 
     private Episode createAnEpisode() {

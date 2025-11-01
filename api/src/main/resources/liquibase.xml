@@ -130,7 +130,7 @@
     </changeSet>
 
 
-    <changeSet id="EOC-20251009-1432" author="angshu" dbms="mysql,mariadb,postgresql">
+    <changeSet id="EOC-20251009-1435" author="angshu" dbms="mysql,mariadb,postgresql">
         <preConditions onFail="MARK_RAN" onError="WARN">
             <tableExists tableName="episode"/>
             <not>
@@ -162,12 +162,11 @@
                                  referencedTableName="patient" referencedColumnNames="patient_id"/>
         <addForeignKeyConstraint constraintName="episode_type_concept_id_fk"
                                  baseTableName="episode" baseColumnNames="concept_id"
-                                 referencedTableName="concept" referencedColumnNames="concept_id"
-        />
+                                 referencedTableName="concept" referencedColumnNames="concept_id"/>
         <addForeignKeyConstraint constraintName="episode_care_manager_id_fk"
                                  baseTableName="episode" baseColumnNames="care_manager"
-                                 referencedTableName="users" referencedColumnNames="user_id"
-        />
+                                 referencedTableName="provider" referencedColumnNames="provider_id"/>
+
     </changeSet>
     <changeSet id="EOC-20251009-1651" author="angshu">
         <preConditions onFail="MARK_RAN">

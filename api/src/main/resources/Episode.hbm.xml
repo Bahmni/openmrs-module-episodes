@@ -66,9 +66,7 @@
 
         <many-to-one name="concept"  column="concept_id" class="org.openmrs.Concept" not-null="false"/>
 
-        <many-to-one name="careManager" class="org.openmrs.User" not-null="true">
-            <column name="care_manager" />
-        </many-to-one>
+        <many-to-one name="careManager" class="org.openmrs.Provider" column="care_manager" />
 
         <set name="statusHistory" cascade="all-delete-orphan" table="episode_status_history">
             <key column="episode_id"/>

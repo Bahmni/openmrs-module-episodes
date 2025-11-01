@@ -5,6 +5,7 @@ import org.openmrs.Concept;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
+import org.openmrs.Provider;
 import org.openmrs.User;
 import org.openmrs.Visit;
 
@@ -24,7 +25,7 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
     private Date dateEnded;
     private Concept concept;
     private Set<EpisodeStatusHistory> statusHistory = new HashSet<>();
-    private User careManager;
+    private Provider careManager;
     private Set<Visit> visits = new HashSet<>();
 
     public Status getStatus() {
@@ -68,11 +69,11 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
         this.concept = concept;
     }
 
-    public User getCareManager() {
+    public Provider getCareManager() {
         return careManager;
     }
 
-    public void setCareManager(User careManager) {
+    public void setCareManager(Provider careManager) {
         this.careManager = careManager;
     }
 
