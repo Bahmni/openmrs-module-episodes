@@ -14,7 +14,7 @@ public interface EpisodeAttributeTypeService {
     List<EpisodeAttributeType> getAllAttributeTypes(boolean includeRetired);
 
     @Transactional(readOnly = true)
-    @Authorized({"View Appointments"})
+    @Authorized({"Get Episode Attribute Types"})
     EpisodeAttributeType getAttributeTypeByUuid(@NotBlank String uuid);
 
     @Transactional
