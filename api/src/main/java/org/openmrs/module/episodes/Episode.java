@@ -6,7 +6,6 @@ import org.openmrs.Encounter;
 import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
 import org.openmrs.Provider;
-import org.openmrs.User;
 import org.openmrs.Visit;
 
 import java.util.Date;
@@ -23,7 +22,7 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
     private Episode.Status status = Episode.Status.ACTIVE;
     private Date dateStarted;
     private Date dateEnded;
-    private Concept concept;
+    private Concept episodeType;
     private Set<EpisodeStatusHistory> statusHistory = new HashSet<>();
     private Provider careManager;
     private Set<Visit> visits = new HashSet<>();
@@ -61,12 +60,12 @@ public class Episode extends BaseCustomizableData<EpisodeAttribute> {
         this.dateStarted = dateStarted;
     }
 
-    public Concept getConcept() {
-        return concept;
+    public Concept getEpisodeType() {
+        return episodeType;
     }
 
-    public void setConcept(Concept concept) {
-        this.concept = concept;
+    public void setEpisodeType(Concept episodeType) {
+        this.episodeType = episodeType;
     }
 
     public Provider getCareManager() {

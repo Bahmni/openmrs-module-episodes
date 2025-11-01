@@ -150,7 +150,7 @@ public class EpisodeServiceImplITTest extends BaseModuleContextSensitiveTest {
         episode.setPatient(new Patient());
         episode.setDateCreated(new Date());
         episode.setStatus(Episode.Status.ACTIVE);
-        episode.setConcept(createConcept("hospitalization"));
+        episode.setEpisodeType(createConcept("hospitalization"));
         if (careManager != null) {
             episode.setCareManager(careManager);
         }

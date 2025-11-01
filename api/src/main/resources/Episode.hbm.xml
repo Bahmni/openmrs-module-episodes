@@ -64,7 +64,7 @@
             <one-to-many class="org.openmrs.module.episodes.EpisodeAttribute" />
         </set>
 
-        <many-to-one name="concept"  column="concept_id" class="org.openmrs.Concept" not-null="false"/>
+        <many-to-one name="episodeType" column="concept_id" class="org.openmrs.Concept" not-null="false"/>
 
         <many-to-one name="careManager" class="org.openmrs.Provider" column="care_manager" />
 
