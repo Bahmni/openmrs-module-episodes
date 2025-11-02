@@ -1,4 +1,4 @@
-package org.openmrs.module.episodes.dao.impl;
+package org.openmrs.module.episodes.dao;
 
 import org.openmrs.Encounter;
 import org.openmrs.PatientProgram;
@@ -10,6 +10,8 @@ public interface EpisodeDAO {
     void save(Episode episode);
 
     Episode get(Integer episodeId);
+
+    Episode getEpisodeByUuid(String uuid);
 
     Episode getEpisodeForPatientProgram(PatientProgram patientProgram);
 

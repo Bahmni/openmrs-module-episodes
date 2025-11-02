@@ -1,11 +1,11 @@
-package org.openmrs.module.episodes.dao.impl.impl;
+package org.openmrs.module.episodes.dao.impl;
 
-import org.hibernate.SessionFactory;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.openmrs.Encounter;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.dao.impl.EpisodeDAO;
+import org.openmrs.module.episodes.dao.EpisodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -25,6 +25,14 @@ public class EpisodeDAOImpl implements EpisodeDAO {
     @Override
     public Episode get(Integer episodeId) {
         return (Episode) session().get(Episode.class, episodeId);
+    }
+
+    @Override
+    public Episode getEpisodeByUuid(String uuid) {
+            return (Episode) sessionFactory.getCurrentSession()
+                    .createQuery("from Episode e where e.uuid = :uuid")
+                    .setParameter("uuid", uuid)
+                    .uniqueResult();
     }
 
     @Override

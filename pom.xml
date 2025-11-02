@@ -4,7 +4,7 @@
 
 	<groupId>org.bahmni.module</groupId>
 	<artifactId>episodes</artifactId>
-	<version>1.2.0</version>
+	<version>1.3.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Episodes of Care Module</name>
 	<description>Implementation of Episodes of Care for OpenMRS</description>
@@ -53,6 +53,7 @@
 		<powerMockVersion>1.7.4</powerMockVersion>
 		<mockitoVersion>3.5.11</mockitoVersion>
 		<javaxServletVersion>4.0.1</javaxServletVersion>
+		<webServices.version>2.29.0</webServices.version>
 	</properties>
 
 	<profiles>
@@ -192,6 +193,12 @@
                 <version>${mockitoVersion}</version>
                 <scope>test</scope>
             </dependency>
+			<dependency>
+				<groupId>org.openmrs.module</groupId>
+				<artifactId>webservices.rest-omod</artifactId>
+				<version>${webServices.version}</version>
+				<scope>provided</scope>
+			</dependency>
         </dependencies>
 	</dependencyManagement>
 
@@ -236,9 +243,10 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.14.0</version>
 					<configuration>
-						<target>1.7</target>
-						<source>1.7</source>
+						<target>1.8</target>
+						<source>1.8</source>
 					</configuration>
 				</plugin>
 				<plugin>
