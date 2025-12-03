@@ -11,11 +11,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public class EpisodeDAOImpl implements EpisodeDAO {
 
-    @Autowired
     private SessionFactory sessionFactory;
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
 
     @Override
     public void save(Episode episode) {

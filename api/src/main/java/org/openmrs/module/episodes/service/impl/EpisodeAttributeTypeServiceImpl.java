@@ -11,11 +11,14 @@ import javax.validation.constraints.NotBlank;
 import java.util.Date;
 import java.util.List;
 
-@Service
 @Transactional
 public class EpisodeAttributeTypeServiceImpl implements EpisodeAttributeTypeService {
 
     private EpisodeAttributeTypeDao episodeAttributeTypeDao;
+
+    public void setEpisodeAttributeTypeDao(EpisodeAttributeTypeDao episodeAttributeTypeDao) {
+        this.episodeAttributeTypeDao = episodeAttributeTypeDao;
+    }
 
     public EpisodeAttributeTypeServiceImpl(EpisodeAttributeTypeDao episodeAttributeTypeDao) {
         this.episodeAttributeTypeDao = episodeAttributeTypeDao;

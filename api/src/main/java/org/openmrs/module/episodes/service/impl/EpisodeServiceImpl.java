@@ -11,11 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Component
 @Transactional
 public class EpisodeServiceImpl implements EpisodeService {
-    @Autowired
+
     private EpisodeDAO episodeDAO;
+
+    public void setEpisodeDAO(EpisodeDAO episodeDAO) {
+        this.episodeDAO = episodeDAO;
+    }
 
     @Override
     public void save(Episode episode) {

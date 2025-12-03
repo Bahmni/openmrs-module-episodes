@@ -25,4 +25,73 @@
 
 	<context:component-scan base-package="org.openmrs.module.episodes"/>
 
+	<bean id="episodeDao" class="org.openmrs.module.episodes.dao.impl.EpisodeDAOImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory"/>
+		</property>
+	</bean>
+	<bean id="episodeAttributeTypeDao" class="org.openmrs.module.episodes.dao.impl.EpisodeAttributeTypeDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory"/>
+		</property>
+	</bean>
+
+	<bean id="episodeService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager">
+			<ref bean="transactionManager"/>
+		</property>
+		<property name="target">
+			<bean class="org.openmrs.module.episodes.service.impl.EpisodeServiceImpl">
+				<property name="episodeDAO">
+					<ref bean="episodeDao"/>
+				</property>
+			</bean>
+		</property>
+		<property name="preInterceptors">
+			<ref bean="serviceInterceptors"/>
+		</property>
+		<property name="transactionAttributeSource">
+			<ref bean="transactionAttributeSource"/>
+		</property>
+	</bean>
+
+	<bean id="episodeAttributeTypeService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager">
+			<ref bean="transactionManager"/>
+		</property>
+		<property name="target">
+			<bean class="org.openmrs.module.episodes.service.impl.EpisodeAttributeTypeServiceImpl">
+				<property name="episodeAttributeTypeDao">
+					<ref bean="episodeAttributeTypeDao"/>
+				</property>
+			</bean>
+		</property>
+		<property name="preInterceptors">
+			<ref bean="serviceInterceptors"/>
+		</property>
+		<property name="transactionAttributeSource">
+			<ref bean="transactionAttributeSource"/>
+		</property>
+	</bean>
+
+	<bean parent="serviceContext">
+		<property name="moduleService">
+			<list merge="true">
+				<value>org.openmrs.module.episodes.service.EpisodeService</value>
+				<ref bean="episodeService"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean parent="serviceContext">
+		<property name="moduleService">
+			<list merge="true">
+				<value>org.openmrs.module.episodes.service.EpisodeAttributeTypeService</value>
+				<ref bean="episodeAttributeTypeService"/>
+			</list>
+		</property>
+	</bean>
+
+
+
 </beans>
