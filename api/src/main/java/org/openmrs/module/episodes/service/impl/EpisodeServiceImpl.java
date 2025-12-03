@@ -16,7 +16,7 @@ public class EpisodeServiceImpl implements EpisodeService {
 
     private EpisodeDAO episodeDAO;
 
-    public void setEpisodeDAO(EpisodeDAO episodeDAO) {
+    public EpisodeServiceImpl(EpisodeDAO episodeDAO) {
         this.episodeDAO = episodeDAO;
     }
 

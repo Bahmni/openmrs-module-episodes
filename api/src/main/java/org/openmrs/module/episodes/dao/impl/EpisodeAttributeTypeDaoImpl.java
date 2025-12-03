@@ -19,10 +19,6 @@ public class EpisodeAttributeTypeDaoImpl implements EpisodeAttributeTypeDao {
 
     private SessionFactory sessionFactory;
 
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
-
     public EpisodeAttributeTypeDaoImpl(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }

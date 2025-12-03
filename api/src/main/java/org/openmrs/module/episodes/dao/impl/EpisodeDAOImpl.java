@@ -15,7 +15,7 @@ public class EpisodeDAOImpl implements EpisodeDAO {
 
     private SessionFactory sessionFactory;
 
-    public void setSessionFactory(SessionFactory sessionFactory) {
+    public EpisodeDAOImpl(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 

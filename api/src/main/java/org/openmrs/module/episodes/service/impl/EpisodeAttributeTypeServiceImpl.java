@@ -16,10 +16,6 @@ public class EpisodeAttributeTypeServiceImpl implements EpisodeAttributeTypeServ
 
     private EpisodeAttributeTypeDao episodeAttributeTypeDao;
 
-    public void setEpisodeAttributeTypeDao(EpisodeAttributeTypeDao episodeAttributeTypeDao) {
-        this.episodeAttributeTypeDao = episodeAttributeTypeDao;
-    }
-
     public EpisodeAttributeTypeServiceImpl(EpisodeAttributeTypeDao episodeAttributeTypeDao) {
         this.episodeAttributeTypeDao = episodeAttributeTypeDao;
     }

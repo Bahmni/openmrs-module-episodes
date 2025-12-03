@@ -23,17 +23,11 @@
   		    http://www.springframework.org/schema/util
   		    http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<context:component-scan base-package="org.openmrs.module.episodes"/>
-
 	<bean id="episodeDao" class="org.openmrs.module.episodes.dao.impl.EpisodeDAOImpl">
-		<property name="sessionFactory">
-			<ref bean="sessionFactory"/>
-		</property>
+		<constructor-arg name="sessionFactory"  ref="sessionFactory"/>
 	</bean>
 	<bean id="episodeAttributeTypeDao" class="org.openmrs.module.episodes.dao.impl.EpisodeAttributeTypeDaoImpl">
-		<property name="sessionFactory">
-			<ref bean="sessionFactory"/>
-		</property>
+		<constructor-arg name="sessionFactory"  ref="sessionFactory"/>
 	</bean>
 
 	<bean id="episodeService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
@@ -42,9 +36,7 @@
 		</property>
 		<property name="target">
 			<bean class="org.openmrs.module.episodes.service.impl.EpisodeServiceImpl">
-				<property name="episodeDAO">
-					<ref bean="episodeDao"/>
-				</property>
+				<constructor-arg name="episodeDAO" ref="episodeDao"/>
 			</bean>
 		</property>
 		<property name="preInterceptors">
@@ -61,9 +53,7 @@
 		</property>
 		<property name="target">
 			<bean class="org.openmrs.module.episodes.service.impl.EpisodeAttributeTypeServiceImpl">
-				<property name="episodeAttributeTypeDao">
-					<ref bean="episodeAttributeTypeDao"/>
-				</property>
+				<constructor-arg name="episodeAttributeTypeDao" ref="episodeAttributeTypeDao"/>
 			</bean>
 		</property>
 		<property name="preInterceptors">
