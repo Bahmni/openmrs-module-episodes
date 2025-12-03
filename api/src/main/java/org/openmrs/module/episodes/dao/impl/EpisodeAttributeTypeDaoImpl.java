@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public class EpisodeAttributeTypeDaoImpl implements EpisodeAttributeTypeDao {
 
     private static final String HQL_SELECT_ALL_EPISODE_ATTRIBUTE_TYPE = "FROM EpisodeAttributeType";

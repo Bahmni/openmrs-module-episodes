@@ -1,6 +1,5 @@
 package org.openmrs.module.episodes.service;
 
-import org.openmrs.ConceptAttributeType;
 import org.openmrs.annotation.Authorized;
 import org.openmrs.module.episodes.EpisodeAttributeType;
 import org.springframework.transaction.annotation.Transactional;
