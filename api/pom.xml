@@ -11,8 +11,14 @@
 	<packaging>jar</packaging>
 	<name>Episodes of Care API</name>
 	<description>API project for Episodes Of Care module</description>
-
-	<dependencies>
+	
+    <licenses>
+        <license>
+            <name>Mozilla Public License Version 2.0</name>
+            <url>https://www.bahmni.org/license/mplv2hd</url>
+        </license>
+    </licenses>
+    <dependencies>
 		<dependency>
 			<groupId>org.openmrs.api</groupId>
 			<artifactId>openmrs-api</artifactId>
