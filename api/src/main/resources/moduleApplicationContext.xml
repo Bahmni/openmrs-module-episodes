@@ -29,6 +29,9 @@
 	<bean id="episodeAttributeTypeDao" class="org.openmrs.module.episodes.dao.impl.EpisodeAttributeTypeDaoImpl">
 		<constructor-arg name="sessionFactory"  ref="sessionFactory"/>
 	</bean>
+	<bean id="episodeSearchDao" class="org.openmrs.module.episodes.dao.impl.EpisodeSearchDaoImpl">
+		<constructor-arg name="sessionFactory"  ref="sessionFactory"/>
+	</bean>
 
 	<bean id="episodeService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
 		<property name="transactionManager">
@@ -82,6 +85,30 @@
 		</property>
 	</bean>
 
+	<bean id="episodeSearchService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager">
+			<ref bean="transactionManager"/>
+		</property>
+		<property name="target">
+			<bean class="org.openmrs.module.episodes.service.impl.EpisodeSearchServiceImpl">
+				<constructor-arg name="episodeSearchDao" ref="episodeSearchDao"/>
+			</bean>
+		</property>
+		<property name="preInterceptors">
+			<ref bean="serviceInterceptors"/>
+		</property>
+		<property name="transactionAttributeSource">
+			<ref bean="transactionAttributeSource"/>
+		</property>
+	</bean>
 
+	<bean parent="serviceContext">
+		<property name="moduleService">
+			<list merge="true">
+				<value>org.openmrs.module.episodes.service.EpisodeSearchService</value>
+				<ref bean="episodeSearchService"/>
+			</list>
+		</property>
+	</bean>
 
 </beans>

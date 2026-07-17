@@ -329,4 +329,56 @@
                                  referencedTableName="users" referencedColumnNames="user_id" />
     </changeSet>
 
+    <changeSet id="EOC-SEARCH-20260714-1001" author="episode-search">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM episode_attribute_type WHERE name = 'Destination Country'
+            </sqlCheck>
+        </preConditions>
+        <insert tableName="episode_attribute_type">
+            <column name="name" value="Destination Country"/>
+            <column name="description" value="Country the patient is being referred to for this episode of care"/>
+            <column name="datatype" value="org.openmrs.customdatatype.datatype.FreeTextDatatype"/>
+            <column name="min_occurs" valueNumeric="0"/>
+            <column name="max_occurs" valueNumeric="1"/>
+            <column name="creator" valueNumeric="1"/>
+            <column name="date_created" valueDate="now()"/>
+            <column name="retired" valueBoolean="false"/>
+            <column name="uuid" valueComputed="UUID()"/>
+        </insert>
+        <modifySql dbms="mssql">
+            <replace replace="UUID()" with="NEWID()"/>
+        </modifySql>
+        <modifySql dbms="postgresql">
+            <replace replace="UUID()" with="uuid_generate_v4()"/>
+        </modifySql>
+    </changeSet>
+
+    <changeSet id="EOC-SEARCH-20260714-1002" author="episode-search">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM episode_attribute_type WHERE name = 'Identifier Type Source'
+            </sqlCheck>
+        </preConditions>
+        <insert tableName="episode_attribute_type">
+            <column name="name" value="Identifier Type Source"/>
+            <column name="description" value="Source system/registry that issued the patient identifier referenced by this episode"/>
+            <column name="datatype" value="org.openmrs.customdatatype.datatype.FreeTextDatatype"/>
+            <column name="min_occurs" valueNumeric="0"/>
+            <column name="max_occurs" valueNumeric="1"/>
+            <column name="creator" valueNumeric="1"/>
+            <column name="date_created" valueDate="now()"/>
+            <column name="retired" valueBoolean="false"/>
+            <column name="uuid" valueComputed="UUID()"/>
+        </insert>
+        <modifySql dbms="mssql">
+            <replace replace="UUID()" with="NEWID()"/>
+        </modifySql>
+        <modifySql dbms="postgresql">
+            <replace replace="UUID()" with="uuid_generate_v4()"/>
+        </modifySql>
+    </changeSet>
+
+
 </databaseChangeLog>
+
