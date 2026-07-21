@@ -9,13 +9,18 @@
 
 package org.openmrs.module.episodes.service.impl;
 
+import org.openmrs.Concept;
+import org.openmrs.ConceptName;
 import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
 import org.openmrs.PatientIdentifierType;
 import org.openmrs.PatientProgram;
+import org.openmrs.PatientState;
 import org.openmrs.PersonName;
 import org.openmrs.Program;
+import org.openmrs.ProgramWorkflow;
+import org.openmrs.ProgramWorkflowState;
 import org.openmrs.Provider;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.EpisodeSearchDAO;
@@ -33,6 +38,7 @@ import org.openmrs.module.episodes.service.EpisodeSearchService;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -162,8 +168,91 @@ public class EpisodeSearchServiceImpl implements EpisodeSearchService {
 
         dto.setAttributes(mapProgramAttributes(pp));
         dto.setProgram(mapProgram(pp.getProgram()));
+        dto.setCurrentState(findCurrentState(pp));
 
         return dto;
+    }
+
+    private PatientProgramDTO.CurrentStateDTO findCurrentState(PatientProgram pp) {
+        PatientState current = selectCurrentState(pp.getStates());
+        return current != null ? mapCurrentState(current) : null;
+    }
+
+    static PatientState selectCurrentState(Collection<PatientState> states) {
+        List<PatientState> active = new ArrayList<>();
+        List<PatientState> ended = new ArrayList<>();
+
+        for (PatientState state : states) {
+            if (state.getVoided()) continue;
+            if (state.getEndDate() == null) {
+                active.add(state);
+            } else {
+                ended.add(state);
+            }
+        }
+
+        return active.isEmpty() ? latestByEndDate(ended) : latestByStartDate(active);
+    }
+
+    private static PatientState latestByStartDate(List<PatientState> states) {
+        PatientState latest = states.get(0);
+        for (PatientState state : states) {
+            if (state.getStartDate() != null && latest.getStartDate() != null
+                    && state.getStartDate().after(latest.getStartDate())) {
+                latest = state;
+            }
+        }
+        return latest;
+    }
+
+    private static PatientState latestByEndDate(List<PatientState> states) {
+        if (states.isEmpty()) return null;
+        PatientState latest = states.get(0);
+        for (PatientState state : states) {
+            if (state.getEndDate().after(latest.getEndDate())) {
+                latest = state;
+            }
+        }
+        return latest;
+    }
+
+    private PatientProgramDTO.CurrentStateDTO mapCurrentState(PatientState patientState) {
+        PatientProgramDTO.CurrentStateDTO dto = new PatientProgramDTO.CurrentStateDTO();
+        dto.setUuid(patientState.getUuid());
+        dto.setStartDate(formatDate(patientState.getStartDate()));
+        dto.setEndDate(formatDate(patientState.getEndDate()));
+
+        ProgramWorkflowState workflowState = patientState.getState();
+        if (workflowState != null) {
+            PatientProgramDTO.CurrentStateDTO.WorkflowStateDTO stateDto =
+                    new PatientProgramDTO.CurrentStateDTO.WorkflowStateDTO();
+            stateDto.setUuid(workflowState.getUuid());
+            stateDto.setInitial(Boolean.TRUE.equals(workflowState.getInitial()));
+            stateDto.setTerminal(Boolean.TRUE.equals(workflowState.getTerminal()));
+            stateDto.setConcept(toConceptRef(workflowState.getConcept()));
+            dto.setState(stateDto);
+
+            ProgramWorkflow workflow = workflowState.getProgramWorkflow();
+            if (workflow != null) {
+                PatientProgramDTO.CurrentStateDTO.WorkflowRefDTO workflowDto =
+                        new PatientProgramDTO.CurrentStateDTO.WorkflowRefDTO();
+                workflowDto.setUuid(workflow.getUuid());
+                workflowDto.setConcept(toConceptRef(workflow.getConcept()));
+                dto.setWorkflow(workflowDto);
+            }
+        }
+
+        return dto;
+    }
+
+    private PatientProgramDTO.CurrentStateDTO.ConceptRefDTO toConceptRef(Concept concept) {
+        if (concept == null) return null;
+        PatientProgramDTO.CurrentStateDTO.ConceptRefDTO ref =
+                new PatientProgramDTO.CurrentStateDTO.ConceptRefDTO();
+        ref.setUuid(concept.getUuid());
+        ConceptName name = concept.getName();
+        if (name != null) ref.setDisplay(name.getName());
+        return ref;
     }
 
     private ProgramDTO mapProgram(Program program) {
