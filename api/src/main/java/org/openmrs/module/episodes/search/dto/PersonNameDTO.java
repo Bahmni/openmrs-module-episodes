@@ -14,7 +14,6 @@ import lombok.Data;
 @Data
 public class PersonNameDTO {
 
-    private String display;
     private String uuid;
     private String givenName;
     private String middleName;
