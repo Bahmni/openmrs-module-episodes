@@ -20,6 +20,7 @@ public class PatientProgramDTO {
     private LocationRefDTO location;
     private List<ProgramAttributeDTO> attributes;
     private ProgramDTO program;
+    private CurrentStateDTO currentState;
 
     @Data
     public static class ProgramAttributeDTO {
@@ -30,6 +31,35 @@ public class PatientProgramDTO {
         @Data
         public static class AttributeTypeRefDTO {
             private String uuid;
+        }
+    }
+
+    @Data
+    public static class CurrentStateDTO {
+        private String uuid;
+        private String startDate;
+        private String endDate;
+        private WorkflowStateDTO state;
+        private WorkflowRefDTO workflow;
+
+        @Data
+        public static class WorkflowStateDTO {
+            private String uuid;
+            private ConceptRefDTO concept;
+            private boolean initial;
+            private boolean terminal;
+        }
+
+        @Data
+        public static class WorkflowRefDTO {
+            private String uuid;
+            private ConceptRefDTO concept;
+        }
+
+        @Data
+        public static class ConceptRefDTO {
+            private String uuid;
+            private String display;
         }
     }
 }
