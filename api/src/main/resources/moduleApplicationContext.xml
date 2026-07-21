@@ -23,6 +23,36 @@
   		    http://www.springframework.org/schema/util
   		    http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
+	<bean id="episodeSearchDao" class="org.openmrs.module.episodes.dao.impl.EpisodeSearchDAOImpl">
+		<constructor-arg name="sessionFactory" ref="sessionFactory"/>
+	</bean>
+
+	<bean id="episodeSearchService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager">
+			<ref bean="transactionManager"/>
+		</property>
+		<property name="target">
+			<bean class="org.openmrs.module.episodes.service.impl.EpisodeSearchServiceImpl">
+				<constructor-arg name="episodeSearchDAO" ref="episodeSearchDao"/>
+			</bean>
+		</property>
+		<property name="preInterceptors">
+			<ref bean="serviceInterceptors"/>
+		</property>
+		<property name="transactionAttributeSource">
+			<ref bean="transactionAttributeSource"/>
+		</property>
+	</bean>
+
+	<bean parent="serviceContext">
+		<property name="moduleService">
+			<list merge="true">
+				<value>org.openmrs.module.episodes.service.EpisodeSearchService</value>
+				<ref bean="episodeSearchService"/>
+			</list>
+		</property>
+	</bean>
+
 	<bean id="episodeDao" class="org.openmrs.module.episodes.dao.impl.EpisodeDAOImpl">
 		<constructor-arg name="sessionFactory"  ref="sessionFactory"/>
 	</bean>
