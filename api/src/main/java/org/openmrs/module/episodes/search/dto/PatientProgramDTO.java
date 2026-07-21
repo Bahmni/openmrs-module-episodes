@@ -14,27 +14,22 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class EpisodeSearchResultDTO {
+public class PatientProgramDTO {
 
     private String uuid;
-    private String status;
-    private String dateStarted;
-    private String dateEnded;
-    private PatientDTO patient;
-    private List<PatientProgramDTO> patientPrograms;
-    private CareManagerDTO careManager;
+    private LocationRefDTO location;
+    private List<ProgramAttributeDTO> attributes;
+    private ProgramDTO program;
 
     @Data
-    public static class CareManagerDTO {
+    public static class ProgramAttributeDTO {
+        private AttributeTypeRefDTO attributeType;
+        private String value;
         private String uuid;
-        private String display;
-        private String identifier;
-        private PersonDTO person;
 
         @Data
-        public static class PersonDTO {
+        public static class AttributeTypeRefDTO {
             private String uuid;
-            private PersonNameDTO preferredName;
         }
     }
 }

@@ -11,34 +11,18 @@ package org.openmrs.module.episodes.search.dto;
 
 import lombok.Data;
 
-import java.util.List;
-
 @Data
 public class ProgramDTO {
 
-    private String name;
     private String uuid;
+    private String name;
     private boolean retired;
     private String description;
     private ConceptRefDTO concept;
-    private LocationRefDTO location;
-    private List<ProgramAttributeDTO> attributes;
 
     @Data
     public static class ConceptRefDTO {
         private String uuid;
         private String display;
-    }
-
-    @Data
-    public static class ProgramAttributeDTO {
-        private AttributeTypeRefDTO attributeType;
-        private String value;
-        private String uuid;
-
-        @Data
-        public static class AttributeTypeRefDTO {
-            private String uuid;
-        }
     }
 }
