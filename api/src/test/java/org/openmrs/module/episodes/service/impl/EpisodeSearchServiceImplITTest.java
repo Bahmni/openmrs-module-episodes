@@ -1,0 +1,140 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at https://www.bahmni.org/license/mplv2hd.
+ *
+ * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+ * graphic logo is a trademark of OpenMRS Inc.
+ */
+
+package org.openmrs.module.episodes.service.impl;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.openmrs.Person;
+import org.openmrs.PersonName;
+import org.openmrs.Privilege;
+import org.openmrs.Role;
+import org.openmrs.User;
+import org.openmrs.annotation.Authorized;
+import org.openmrs.api.APIAuthenticationException;
+import org.openmrs.api.UserService;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.episodes.search.criteria.Condition;
+import org.openmrs.module.episodes.search.criteria.ConditionOperator;
+import org.openmrs.module.episodes.search.criteria.SearchRequest;
+import org.openmrs.module.episodes.service.EpisodeSearchService;
+import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.junit.Assert.fail;
+
+public class EpisodeSearchServiceImplITTest extends BaseModuleContextSensitiveTest {
+
+    private static final String TEST_PASSWORD = "Admin123!";
+
+    private static final String[] REQUIRED_PRIVILEGES = resolveRequiredPrivileges();
+
+    private static String[] resolveRequiredPrivileges() {
+        try {
+            return EpisodeSearchService.class
+                    .getMethod("search", SearchRequest.class)
+                    .getAnnotation(Authorized.class)
+                    .value();
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("Could not resolve @Authorized privileges from EpisodeSearchService", e);
+        }
+    }
+
+    @Autowired
+    private EpisodeSearchService episodeSearchService;
+
+    @Autowired
+    private UserService userService;
+
+    private final Map<String, User> usersWithoutPrivilege = new HashMap<>();
+
+    @Before
+    public void setUpRestrictedUsers() {
+        for (String privilege : REQUIRED_PRIVILEGES) {
+            usersWithoutPrivilege.put(privilege, createUserWithout(privilege));
+        }
+    }
+
+    @After
+    public void restoreAdminSession() {
+        Context.authenticate("admin", "test");
+    }
+
+    @Test
+    public void shouldDenyAccessWhenEachRequiredPrivilegeIsMissing() {
+        for (String missingPrivilege : REQUIRED_PRIVILEGES) {
+            User user = usersWithoutPrivilege.get(missingPrivilege);
+            Context.authenticate(user.getUsername(), TEST_PASSWORD);
+            try {
+                episodeSearchService.search(validRequest());
+                fail("Expected APIAuthenticationException when missing privilege: " + missingPrivilege);
+            } catch (APIAuthenticationException e) {
+                // expected
+            }
+            Context.authenticate("admin", "test");
+        }
+    }
+
+    private User createUserWithout(String missingPrivilege) {
+        Person person = new Person();
+        PersonName personName = new PersonName();
+        personName.setGivenName("Test");
+        personName.setFamilyName("User");
+        person.addName(personName);
+        person.setGender("M");
+        Context.getPersonService().savePerson(person);
+
+        Role role = new Role();
+        role.setRole("TestRole_" + UUID.randomUUID());
+        role.setDescription("All required privileges except: " + missingPrivilege);
+
+        Set<Privilege> privileges = new HashSet<>();
+        for (String priv : REQUIRED_PRIVILEGES) {
+            if (!priv.equals(missingPrivilege)) {
+                Privilege privilege = userService.getPrivilege(priv);
+                if (privilege != null) {
+                    privileges.add(privilege);
+                }
+            }
+        }
+        role.setPrivileges(privileges);
+        userService.saveRole(role);
+
+        User user = new User(person);
+        user.setUsername("test_user_" + UUID.randomUUID());
+        user.setSystemId("test_" + UUID.randomUUID());
+        user.addRole(role);
+        userService.createUser(user, TEST_PASSWORD);
+        return user;
+    }
+
+    private SearchRequest validRequest() {
+        Condition leaf = new Condition();
+        leaf.setField("episodeOfCare.startDate");
+        leaf.setComparator("gt");
+        leaf.setValue("2024-01-01");
+
+        Condition criteria = new Condition();
+        criteria.setOperator(ConditionOperator.AND);
+        criteria.setConditions(Collections.singletonList(leaf));
+
+        SearchRequest request = new SearchRequest();
+        request.setEntity("episodeOfCare");
+        request.setCriteria(criteria);
+        return request;
+    }
+}

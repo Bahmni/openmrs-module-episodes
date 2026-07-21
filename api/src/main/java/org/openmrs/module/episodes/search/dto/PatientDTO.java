@@ -17,7 +17,6 @@ import java.util.List;
 public class PatientDTO {
 
     private String uuid;
-    private String display;
     private List<IdentifierDTO> identifiers;
     private PersonDTO person;
     private boolean voided;
@@ -41,7 +40,6 @@ public class PatientDTO {
     @Data
     public static class PersonDTO {
         private String uuid;
-        private String display;
         private String gender;
         private Integer age;
         private String birthdate;
