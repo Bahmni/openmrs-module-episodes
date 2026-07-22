@@ -47,19 +47,13 @@ public class CriteriaValidatorTest {
     }
 
     @Test
-    public void shouldThrowWhenOrOperatorUsedAtRoot() {
-        thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("'OR'");
-
+    public void shouldPassValidationForOrOperatorAtRoot() {
         validator.validate(requestWith(group(ConditionOperator.OR,
                 leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM))));
     }
 
     @Test
-    public void shouldThrowWhenOrOperatorUsedInNestedGroup() {
-        thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("'OR'");
-
+    public void shouldPassValidationForOrOperatorInNestedGroup() {
         Condition inner = group(ConditionOperator.OR,
                 leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM));
         Condition outer = group(ConditionOperator.AND, inner);

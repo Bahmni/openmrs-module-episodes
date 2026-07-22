@@ -46,10 +46,6 @@ public class CriteriaValidator {
     }
 
     private void validateGroup(Condition group) {
-        if (!group.getOperator().isSupported()) {
-            throw new InvalidSearchCriteriaException(
-                    "Operator '" + group.getOperator() + "' is not supported. Only 'AND' is allowed.", SearchResponseErrorStatus.UNPROCESSABLE_ENTITY);
-        }
         if (group.getConditions() == null || group.getConditions().isEmpty()) {
             throw new InvalidSearchCriteriaException("A group condition must have at least one condition in 'conditions'", SearchResponseErrorStatus.BAD_REQUEST);
         }

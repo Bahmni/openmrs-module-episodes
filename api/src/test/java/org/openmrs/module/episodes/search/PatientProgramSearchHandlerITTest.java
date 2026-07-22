@@ -169,12 +169,21 @@ public class PatientProgramSearchHandlerITTest extends BaseModuleContextSensitiv
         assertThat(results.size(), is(0));
     }
 
-    @Test(expected = InvalidSearchCriteriaException.class)
-    public void shouldThrowExceptionWhenOrOperatorUsed() {
+    @Test
+    public void shouldSupportOrOperator() {
+        PatientProgram pp = programWorkflowService.getPatientProgram(1);
+        saveEpisodeWith(pp);
+
         Condition criteria = new Condition();
         criteria.setOperator(ConditionOperator.OR);
-        criteria.setConditions(Arrays.asList(leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM)));
-        searchHandler.search(requestWith(criteria));
+        criteria.setConditions(Arrays.asList(
+                leaf(SearchFields.Program.UUID, EQ, pp.getProgram().getUuid()),
+                leaf(SearchFields.Program.UUID, EQ, "non-existent-uuid")
+        ));
+
+        List<Map<String, Object>> results = searchHandler.search(requestWith(criteria));
+        assertThat(results.size(), is(1));
+        assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
     }
 
     @Test(expected = InvalidSearchCriteriaException.class)

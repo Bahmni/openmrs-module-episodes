@@ -12,7 +12,12 @@ package org.openmrs.module.episodes.search.criteria;
 public enum ConditionOperator {
     AND, OR;
 
-    public boolean isSupported() {
-        return this == AND;
+    public static ConditionOperator fromString(String s) {
+        if (s == null) return null;
+        try {
+            return ConditionOperator.valueOf(s.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }
