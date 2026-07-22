@@ -22,7 +22,7 @@ import org.openmrs.ProgramWorkflowState;
 import org.openmrs.Provider;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
-import org.openmrs.module.episodes.search.CriteriaValidator;
+import org.openmrs.module.episodes.search.criteria.CriteriaValidator;
 import org.openmrs.module.episodes.search.SearchHandler;
 import org.openmrs.module.episodes.search.criteria.SearchRequest;
 

@@ -7,8 +7,9 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search;
+package org.openmrs.module.episodes.search.criteria;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,6 @@ public class SearchResponse {
     }
 
     public List<Map<String, Object>> getResults() {
-        return results;
+        return Collections.unmodifiableList(results);
     }
 }

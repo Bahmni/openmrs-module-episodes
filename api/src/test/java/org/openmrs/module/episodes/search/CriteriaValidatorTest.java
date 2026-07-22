@@ -12,6 +12,7 @@ package org.openmrs.module.episodes.search;
 import org.openmrs.module.episodes.search.constants.SearchFields;
 import org.openmrs.module.episodes.search.criteria.Condition;
 import org.openmrs.module.episodes.search.criteria.ConditionOperator;
+import org.openmrs.module.episodes.search.criteria.CriteriaValidator;
 import org.openmrs.module.episodes.search.criteria.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 

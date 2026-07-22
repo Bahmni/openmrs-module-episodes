@@ -20,7 +20,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.criteria.Condition;
-import org.openmrs.module.episodes.search.CriteriaValidator;
+import org.openmrs.module.episodes.search.criteria.CriteriaValidator;
 import org.openmrs.module.episodes.search.criteria.ConditionOperator;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.criteria.SearchRequest;
@@ -60,9 +60,8 @@ public class PatientProgramSearchHandlerTest {
     }
 
     @Test
-    public void shouldThrowBeforeCallingDAOWhenOrOperatorUsed() {
-        thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("'OR'");
+    public void shouldDelegateToDAOWhenOrOperatorUsed() {
+        when(patientProgramSearchDAO.search(any(Condition.class))).thenReturn(Collections.emptyList());
 
         Condition criteria = new Condition();
         criteria.setOperator(ConditionOperator.OR);
@@ -74,7 +73,7 @@ public class PatientProgramSearchHandlerTest {
 
         handler.search(request);
 
-        verify(patientProgramSearchDAO, times(0)).search(any());
+        verify(patientProgramSearchDAO, times(1)).search(any(Condition.class));
     }
 
     @Test
