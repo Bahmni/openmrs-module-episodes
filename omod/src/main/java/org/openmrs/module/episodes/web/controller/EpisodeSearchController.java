@@ -9,13 +9,11 @@
 
 package org.openmrs.module.episodes.web.controller;
 
-import org.openmrs.api.context.Context;
-import org.openmrs.module.episodes.search.SearchService;
-import org.openmrs.module.episodes.search.model.SearchResponse;
+import org.openmrs.module.episodes.service.SearchService;
+import org.openmrs.module.episodes.search.SearchServiceRegistry;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.EpisodeSearchException;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
-import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -27,7 +25,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,15 +35,10 @@ public class EpisodeSearchController {
 
     private static final Logger log = LoggerFactory.getLogger(EpisodeSearchController.class);
 
-    private Map<String, SearchService> serviceRegistry;
+    private final SearchServiceRegistry searchServiceRegistry;
 
-    @PostConstruct
-    public void init() {
-        serviceRegistry = new HashMap<>();
-        List<SearchService> services = Context.getRegisteredComponents(SearchService.class);
-        for (SearchService service : services) {
-            serviceRegistry.put(service.getEntity(), service);
-        }
+    public EpisodeSearchController(SearchServiceRegistry searchServiceRegistry) {
+        this.searchServiceRegistry = searchServiceRegistry;
     }
 
     @PostMapping(
@@ -57,9 +49,11 @@ public class EpisodeSearchController {
     @ResponseBody
     public ResponseEntity<?> search(@RequestBody SearchRequest request) {
         try {
-            SearchService service = resolveService(request);
+            SearchService service = searchServiceRegistry.resolve(request.getEntity());
             List<Map<String, Object>> results = service.search(request);
-            return ResponseEntity.ok(new SearchResponse(results));
+            Map<String, Object> response = new HashMap<>();
+            response.put("results", results);
+            return ResponseEntity.ok(response);
         } catch (InvalidSearchCriteriaException e) {
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
@@ -72,20 +66,5 @@ public class EpisodeSearchController {
             error.put("error", "An unexpected error occurred while processing the search request");
             return ResponseEntity.status(searchException.getStatus().getCode()).body(error);
         }
-    }
-
-    private SearchService resolveService(SearchRequest request) {
-        String entity = request.getEntity();
-        if (entity == null || entity.isEmpty()) {
-            throw new InvalidSearchCriteriaException(
-                    "Request must include 'entity'", SearchResponseErrorStatus.BAD_REQUEST);
-        }
-        SearchService service = serviceRegistry.get(entity);
-        if (service == null) {
-            throw new InvalidSearchCriteriaException(
-                    "Entity '" + entity + "' is not supported. Supported entities: " + serviceRegistry.keySet(),
-                    SearchResponseErrorStatus.BAD_REQUEST);
-        }
-        return service;
     }
 }

@@ -9,6 +9,8 @@
 
 package org.openmrs.module.episodes.search;
 
+import org.openmrs.module.episodes.service.SearchService;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +38,7 @@ import java.util.UUID;
 
 import static org.junit.Assert.fail;
 
-public class PatientProgramSearchHandlerPrivilegeITTest extends BaseModuleContextSensitiveTest {
+public class PatientProgramSearchServiceImplPrivilegeITTest extends BaseModuleContextSensitiveTest {
 
     private static final String TEST_PASSWORD = "Admin123!";
 

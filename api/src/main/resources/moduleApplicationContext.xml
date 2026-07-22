@@ -26,7 +26,7 @@
 	<bean id="patientProgramSearchDao" class="org.openmrs.module.episodes.dao.impl.PatientProgramSearchDAOImpl">
 		<constructor-arg name="sessionFactory" ref="sessionFactory"/>
 		<constructor-arg name="criteriaBuilder">
-			<bean class="org.openmrs.module.episodes.search.impl.PatientProgramCriteriaBuilder"/>
+			<bean class="org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder"/>
 		</constructor-arg>
 	</bean>
 
@@ -35,11 +35,14 @@
 			<ref bean="transactionManager"/>
 		</property>
 		<property name="target">
-			<bean class="org.openmrs.module.episodes.search.impl.PatientProgramSearchHandler">
+			<bean class="org.openmrs.module.episodes.search.impl.PatientProgramSearchServiceImpl">
 				<constructor-arg name="patientProgramSearchDAO" ref="patientProgramSearchDao"/>
 				<constructor-arg name="validator">
 					<bean class="org.openmrs.module.episodes.search.validation.CriteriaValidator"/>
 				</constructor-arg>
+			<constructor-arg name="responseBuilder">
+				<bean class="org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder"/>
+			</constructor-arg>
 			</bean>
 		</property>
 		<property name="preInterceptors">
@@ -48,6 +51,14 @@
 		<property name="transactionAttributeSource">
 			<ref bean="transactionAttributeSource"/>
 		</property>
+	</bean>
+
+	<bean id="searchServiceRegistry" class="org.openmrs.module.episodes.search.SearchServiceRegistry">
+		<constructor-arg name="services">
+			<list>
+				<ref bean="patientProgramSearchService"/>
+			</list>
+		</constructor-arg>
 	</bean>
 
 	<bean id="episodeDao" class="org.openmrs.module.episodes.dao.impl.EpisodeDAOImpl">

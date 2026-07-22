@@ -11,7 +11,7 @@ package org.openmrs.module.episodes.service.impl;
 
 import org.junit.Test;
 import org.openmrs.PatientState;
-import org.openmrs.module.episodes.search.impl.PatientProgramResponseMapper;
+import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -28,7 +28,7 @@ public class PatientStateSelectionTest {
 
     @Test
     public void shouldReturnNullWhenNoStates() {
-        assertThat(PatientProgramResponseMapper.selectCurrentState(Collections.emptySet()), is(nullValue()));
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(Collections.emptySet()), is(nullValue()));
     }
 
     @Test
@@ -36,14 +36,14 @@ public class PatientStateSelectionTest {
         PatientState voided = state(date(2024, 1, 1), null);
         voided.setVoided(true);
 
-        assertThat(PatientProgramResponseMapper.selectCurrentState(setOf(voided)), is(nullValue()));
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(voided)), is(nullValue()));
     }
 
     @Test
     public void shouldReturnSingleActiveState() {
         PatientState active = state(date(2024, 1, 1), null);
 
-        assertThat(PatientProgramResponseMapper.selectCurrentState(setOf(active)), is(active));
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(active)), is(active));
     }
 
     @Test
@@ -51,7 +51,7 @@ public class PatientStateSelectionTest {
         PatientState ended = state(date(2023, 1, 1), date(2023, 6, 1));
         PatientState active = state(date(2024, 1, 1), null);
 
-        assertThat(PatientProgramResponseMapper.selectCurrentState(setOf(ended, active)), is(active));
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(ended, active)), is(active));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class PatientStateSelectionTest {
         PatientState earlier = state(date(2023, 1, 1), null);
         PatientState later = state(date(2024, 6, 1), null);
 
-        assertThat(PatientProgramResponseMapper.selectCurrentState(setOf(earlier, later)), is(later));
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(earlier, later)), is(later));
     }
 
     @Test
@@ -67,7 +67,7 @@ public class PatientStateSelectionTest {
         PatientState older = state(date(2022, 1, 1), date(2022, 12, 31));
         PatientState newer = state(date(2023, 1, 1), date(2023, 12, 31));
 
-        assertThat(PatientProgramResponseMapper.selectCurrentState(setOf(older, newer)), is(newer));
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(older, newer)), is(newer));
     }
 
     @Test
@@ -76,7 +76,7 @@ public class PatientStateSelectionTest {
         PatientState voidedActive = state(date(2024, 1, 1), null);
         voidedActive.setVoided(true);
 
-        assertThat(PatientProgramResponseMapper.selectCurrentState(setOf(active, voidedActive)), is(active));
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(active, voidedActive)), is(active));
     }
 
     private PatientState state(Date startDate, Date endDate) {

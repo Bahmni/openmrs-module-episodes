@@ -10,6 +10,9 @@
 package org.openmrs.module.episodes.search.exceptions;
 
 
+import lombok.Getter;
+
+@Getter
 public class EpisodeSearchException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
@@ -21,12 +24,4 @@ public class EpisodeSearchException extends RuntimeException {
         this.status = SearchResponseErrorStatus.INTERNAL_SERVER_ERROR;
     }
 
-    public EpisodeSearchException(String message, Throwable cause, SearchResponseErrorStatus status) {
-        super(message, cause);
-        this.status = status;
-    }
-
-    public SearchResponseErrorStatus getStatus() {
-        return status;
-    }
 }

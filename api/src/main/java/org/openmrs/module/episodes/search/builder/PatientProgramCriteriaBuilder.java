@@ -7,7 +7,7 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.impl;
+package org.openmrs.module.episodes.search.builder;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
@@ -26,6 +26,7 @@ import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.model.FieldComparator;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -37,7 +38,10 @@ import java.util.Set;
 
 public class PatientProgramCriteriaBuilder {
 
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final String ROOT_ALIAS = "pp";
+
+    private static final DateTimeFormatter DATE_ONLY_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter ISO_DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     public void applyCondition(Criteria criteria, Condition condition) {
         Set<String> createdAliases = new HashSet<>();
@@ -89,63 +93,66 @@ public class PatientProgramCriteriaBuilder {
         switch (field) {
             // --- Episode of Care fields (use subqueries) ---
             case SearchFields.EpisodeOfCare.START_DATE:
-                requireDateComparator(field, comparator);
-                return episodeDateSubquery("e.dateStarted", comparator, parseDate(rawValue));
+                validateDateOnly(field, comparator);
+                return buildEpisodeDateSubquery("e.dateStarted", comparator, parseDate(rawValue));
 
             case SearchFields.EpisodeOfCare.END_DATE:
-                requireDateComparator(field, comparator);
-                return episodeDateSubquery("e.dateEnded", comparator, parseDate(rawValue));
+                validateDateOnly(field, comparator);
+                return buildEpisodeDateSubquery("e.dateEnded", comparator, parseDate(rawValue));
 
             case SearchFields.EpisodeOfCare.CARE_MANAGER:
-                requireEqComparator(field, comparator);
-                return episodeCareManagerSubquery(rawValue);
+                validateEqOnly(field, comparator);
+                return buildEpisodeCareManagerSubquery(rawValue);
 
             // --- Program fields (direct on patient_program) ---
             case SearchFields.Program.UUID:
-                requireEqComparator(field, comparator);
-                return Restrictions.eq("pp.program.uuid", rawValue);
+                validateEqOnly(field, comparator);
+                joinProgram(criteria, createdAliases);
+                return Restrictions.eq("prog.uuid", rawValue);
 
             case SearchFields.Program.TYPE:
-                requireEqComparator(field, comparator);
-                return Restrictions.eq("pp.program.concept.uuid", rawValue);
+                validateEqOnly(field, comparator);
+                joinProgramConcept(criteria, createdAliases);
+                return Restrictions.eq("progConcept.uuid", rawValue);
 
             case SearchFields.Program.LOCATION:
-                requireEqComparator(field, comparator);
-                return Restrictions.eq("pp.location.uuid", rawValue);
+                validateEqOnly(field, comparator);
+                joinLocation(criteria, createdAliases);
+                return Restrictions.eq("loc.uuid", rawValue);
 
             // --- Program state fields (need states JOIN) ---
             case SearchFields.Program.STATUS:
-                requireEqComparator(field, comparator);
-                ensureStatesAlias(criteria, createdAliases);
-                return Restrictions.eq("ps.state.concept.uuid", rawValue);
+                validateEqOnly(field, comparator);
+                joinStateConcept(criteria, createdAliases);
+                return Restrictions.eq("psConcept.uuid", rawValue);
 
             case SearchFields.Program.STATUS_DATE:
-                requireDateComparator(field, comparator);
-                ensureStatesAlias(criteria, createdAliases);
-                return dateRestriction("ps.startDate", comparator, parseDate(rawValue));
+                validateDateOnly(field, comparator);
+                joinStates(criteria, createdAliases);
+                return buildDateRestriction("ps.startDate", comparator, parseDate(rawValue));
 
             // --- Patient identifier fields (need patient + identifiers JOINs) ---
             case SearchFields.Patient.IDENTIFIER_KIND:
-                requireEqComparator(field, comparator);
-                ensurePatientIdentifierAliases(criteria, createdAliases);
+                validateEqOnly(field, comparator);
+                joinIdentifierType(criteria, createdAliases);
                 return Restrictions.or(
-                        Restrictions.eq("pi.identifierType.uuid", rawValue),
-                        Restrictions.eq("pi.identifierType.name", rawValue));
+                        Restrictions.eq("pit.uuid", rawValue),
+                        Restrictions.eq("pit.name", rawValue));
 
             case SearchFields.Patient.IDENTIFIER_VALUE:
-                requireEqComparator(field, comparator);
-                ensurePatientIdentifierAliases(criteria, createdAliases);
+                validateEqOnly(field, comparator);
+                joinPatientIdentifiers(criteria, createdAliases);
                 return Restrictions.eq("pi.identifier", rawValue);
 
             // --- Program attribute fields (need attributes JOIN) ---
             case SearchFields.Program.ATTRIBUTE_KIND:
-                requireEqComparator(field, comparator);
-                ensureAttributesAlias(criteria, createdAliases);
-                return Restrictions.eq("ppa.attributeType.uuid", rawValue);
+                validateEqOnly(field, comparator);
+                joinAttributeType(criteria, createdAliases);
+                return Restrictions.eq("ppat.uuid", rawValue);
 
             case SearchFields.Program.ATTRIBUTE_VALUE:
-                requireEqComparator(field, comparator);
-                ensureAttributesAlias(criteria, createdAliases);
+                validateEqOnly(field, comparator);
+                joinAttributes(criteria, createdAliases);
                 return Restrictions.eq("ppa.valueReference", rawValue);
 
             default:
@@ -154,18 +161,18 @@ public class PatientProgramCriteriaBuilder {
         }
     }
 
-    // ---- Alias helpers (each alias created at most once) ----
+    // ---- Join helpers (each alias created at most once) ----
 
-    private void ensureStatesAlias(Criteria criteria, Set<String> created) {
+    private void joinStates(Criteria criteria, Set<String> created) {
         if (created.add("ps")) {
-            criteria.createAlias("pp.states", "ps", JoinType.INNER_JOIN);
+            criteria.createAlias(ROOT_ALIAS + ".states", "ps", JoinType.INNER_JOIN);
             criteria.add(Restrictions.eq("ps.voided", false));
         }
     }
 
-    private void ensurePatientIdentifierAliases(Criteria criteria, Set<String> created) {
+    private void joinPatientIdentifiers(Criteria criteria, Set<String> created) {
         if (created.add("pat")) {
-            criteria.createAlias("pp.patient", "pat", JoinType.INNER_JOIN);
+            criteria.createAlias(ROOT_ALIAS + ".patient", "pat", JoinType.INNER_JOIN);
         }
         if (created.add("pi")) {
             criteria.createAlias("pat.identifiers", "pi", JoinType.INNER_JOIN);
@@ -173,26 +180,73 @@ public class PatientProgramCriteriaBuilder {
         }
     }
 
-    private void ensureAttributesAlias(Criteria criteria, Set<String> created) {
+    private void joinProgram(Criteria criteria, Set<String> created) {
+        if (created.add("prog")) {
+            criteria.createAlias(ROOT_ALIAS + ".program", "prog", JoinType.INNER_JOIN);
+        }
+    }
+
+    private void joinProgramConcept(Criteria criteria, Set<String> created) {
+        joinProgram(criteria, created);
+        if (created.add("progConcept")) {
+            criteria.createAlias("prog.concept", "progConcept", JoinType.INNER_JOIN);
+        }
+    }
+
+    private void joinLocation(Criteria criteria, Set<String> created) {
+        if (created.add("loc")) {
+            criteria.createAlias(ROOT_ALIAS + ".location", "loc", JoinType.INNER_JOIN);
+        }
+    }
+
+    private void joinWorkflowState(Criteria criteria, Set<String> created) {
+        joinStates(criteria, created);
+        if (created.add("psState")) {
+            criteria.createAlias("ps.state", "psState", JoinType.INNER_JOIN);
+        }
+    }
+
+    private void joinStateConcept(Criteria criteria, Set<String> created) {
+        joinWorkflowState(criteria, created);
+        if (created.add("psConcept")) {
+            criteria.createAlias("psState.concept", "psConcept", JoinType.INNER_JOIN);
+        }
+    }
+
+    private void joinIdentifierType(Criteria criteria, Set<String> created) {
+        joinPatientIdentifiers(criteria, created);
+        if (created.add("pit")) {
+            criteria.createAlias("pi.identifierType", "pit", JoinType.INNER_JOIN);
+        }
+    }
+
+    private void joinAttributes(Criteria criteria, Set<String> created) {
         if (created.add("ppa")) {
-            criteria.createAlias("pp.attributes", "ppa", JoinType.INNER_JOIN);
+            criteria.createAlias(ROOT_ALIAS + ".attributes", "ppa", JoinType.INNER_JOIN);
             criteria.add(Restrictions.eq("ppa.voided", false));
+        }
+    }
+
+    private void joinAttributeType(Criteria criteria, Set<String> created) {
+        joinAttributes(criteria, created);
+        if (created.add("ppat")) {
+            criteria.createAlias("ppa.attributeType", "ppat", JoinType.INNER_JOIN);
         }
     }
 
     // ---- Episode subqueries ----
 
-    private Criterion episodeDateSubquery(String dateProperty, FieldComparator comparator, Date value) {
+    private Criterion buildEpisodeDateSubquery(String dateProperty, FieldComparator comparator, Date value) {
         DetachedCriteria subquery = DetachedCriteria.forClass(Episode.class, "e")
                 .createAlias("e.patientPrograms", "epp")
                 .add(Restrictions.eqProperty("epp.patientProgramId", "pp.patientProgramId"))
                 .add(Restrictions.eq("e.voided", false))
-                .add(dateRestriction(dateProperty, comparator, value))
+                .add(buildDateRestriction(dateProperty, comparator, value))
                 .setProjection(Projections.id());
         return Subqueries.exists(subquery);
     }
 
-    private Criterion episodeCareManagerSubquery(String careManagerUuid) {
+    private Criterion buildEpisodeCareManagerSubquery(String careManagerUuid) {
         DetachedCriteria subquery = DetachedCriteria.forClass(Episode.class, "e")
                 .createAlias("e.patientPrograms", "epp")
                 .createAlias("e.careManager", "ecm")
@@ -205,7 +259,7 @@ public class PatientProgramCriteriaBuilder {
 
     // ---- Value parsing and comparator validation ----
 
-    private Criterion dateRestriction(String property, FieldComparator comparator, Date value) {
+    private Criterion buildDateRestriction(String property, FieldComparator comparator, Date value) {
         switch (comparator) {
             case GT: return Restrictions.gt(property, value);
             case LT: return Restrictions.lt(property, value);
@@ -215,16 +269,20 @@ public class PatientProgramCriteriaBuilder {
 
     private Date parseDate(String value) {
         try {
-            LocalDate localDate = LocalDate.parse(value, DATE_FORMAT);
+            if (value.contains("T")) {
+                OffsetDateTime odt = OffsetDateTime.parse(value, ISO_DATETIME_FORMAT);
+                return Date.from(odt.toInstant());
+            }
+            LocalDate localDate = LocalDate.parse(value, DATE_ONLY_FORMAT);
             return Date.from(localDate.atStartOfDay(ZoneOffset.UTC).toInstant());
         } catch (DateTimeParseException e) {
             throw new InvalidSearchCriteriaException(
-                    "Invalid date format: '" + value + "'. Expected yyyy-MM-dd",
+                    "Invalid date format: '" + value + "'. Expected yyyy-MM-dd or yyyy-MM-dd'T'HH:mm:ss.SSSZ",
                     SearchResponseErrorStatus.BAD_REQUEST);
         }
     }
 
-    private void requireEqComparator(String field, FieldComparator comparator) {
+    private void validateEqOnly(String field, FieldComparator comparator) {
         if (comparator != FieldComparator.EQ) {
             throw new InvalidSearchCriteriaException(
                     "Only 'eq' comparator is supported for field '" + field + "'",
@@ -232,7 +290,7 @@ public class PatientProgramCriteriaBuilder {
         }
     }
 
-    private void requireDateComparator(String field, FieldComparator comparator) {
+    private void validateDateOnly(String field, FieldComparator comparator) {
         if (comparator != FieldComparator.GT && comparator != FieldComparator.LT) {
             throw new InvalidSearchCriteriaException(
                     "Only 'gt' and 'lt' comparators are supported for field '" + field + "'",
