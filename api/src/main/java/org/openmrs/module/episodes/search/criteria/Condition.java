@@ -25,8 +25,19 @@ public class Condition {
     private FieldComparator comparator;
 
     private String value;
+
+    @Setter(AccessLevel.NONE)
     private ConditionOperator operator;
+
     private List<Condition> conditions;
+
+    public void setOperator(String operator) {
+        this.operator = ConditionOperator.fromString(operator);
+    }
+
+    public void setOperator(ConditionOperator operator) {
+        this.operator = operator;
+    }
 
     public void setComparator(String comparator) {
         this.comparator = FieldComparator.fromString(comparator);

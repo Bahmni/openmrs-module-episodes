@@ -69,10 +69,9 @@ public class PatientProgramQueryBuilder {
             return children.get(0);
         }
         Criterion[] arr = children.toArray(new Criterion[0]);
-        if (condition.getOperator() == ConditionOperator.OR) {
-            return Restrictions.or(arr);
-        }
-        return Restrictions.and(arr);
+        return condition.getOperator() == ConditionOperator.OR
+                ? Restrictions.or(arr)
+                : Restrictions.and(arr);
     }
 
     private Criterion buildLeafCriterion(Criteria criteria, Condition leaf, Set<String> createdAliases) {
