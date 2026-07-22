@@ -17,7 +17,9 @@ public enum ConditionOperator {
         try {
             return ConditionOperator.valueOf(s.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return null;
+            throw new org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException(
+                    "Unknown operator: '" + s + "'. Supported: AND, OR",
+                    org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus.BAD_REQUEST);
         }
     }
 }

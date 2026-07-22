@@ -9,7 +9,8 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.openmrs.module.episodes.search.impl.PatientProgramSearchHandler;
+import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
+import org.openmrs.module.episodes.search.impl.PatientProgramSearchServiceImpl;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,7 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PatientProgramSearchHandlerTest {
+public class PatientProgramSearchServiceImplTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -43,18 +44,18 @@ public class PatientProgramSearchHandlerTest {
     @Mock
     private PatientProgramSearchDAO patientProgramSearchDAO;
 
-    private PatientProgramSearchHandler handler;
+    private PatientProgramSearchServiceImpl searchService;
 
     @Before
     public void setUp() {
-        handler = new PatientProgramSearchHandler(patientProgramSearchDAO, new CriteriaValidator());
+        searchService = new PatientProgramSearchServiceImpl(patientProgramSearchDAO, new CriteriaValidator(), new PatientProgramResponseBuilder());
     }
 
     @Test
     public void shouldDelegateToDAOForValidRequest() {
         when(patientProgramSearchDAO.search(any(Condition.class))).thenReturn(Collections.emptyList());
 
-        handler.search(validRequest());
+        searchService.search(validRequest());
 
         verify(patientProgramSearchDAO, times(1)).search(any(Condition.class));
     }
@@ -71,7 +72,7 @@ public class PatientProgramSearchHandlerTest {
         request.setEntity("patientProgram");
         request.setCriteria(criteria);
 
-        handler.search(request);
+        searchService.search(request);
 
         verify(patientProgramSearchDAO, times(1)).search(any(Condition.class));
     }
@@ -80,12 +81,12 @@ public class PatientProgramSearchHandlerTest {
     public void shouldReturnEmptyListWhenNoResults() {
         when(patientProgramSearchDAO.search(any(Condition.class))).thenReturn(Collections.emptyList());
 
-        assertThat(handler.search(validRequest()).size(), is(0));
+        assertThat(searchService.search(validRequest()).size(), is(0));
     }
 
     @Test
     public void shouldReturnPatientProgramEntity() {
-        assertThat(handler.getEntity(), is("patientProgram"));
+        assertThat(searchService.getEntity(), is("patientProgram"));
     }
 
     private SearchRequest validRequest() {

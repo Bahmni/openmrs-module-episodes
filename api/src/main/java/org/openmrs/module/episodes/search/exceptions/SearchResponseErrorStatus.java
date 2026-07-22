@@ -12,7 +12,6 @@ package org.openmrs.module.episodes.search.exceptions;
 public enum SearchResponseErrorStatus {
 
     BAD_REQUEST(400),
-    UNPROCESSABLE_ENTITY(422),
     INTERNAL_SERVER_ERROR(500);
 
     private final int code;

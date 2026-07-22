@@ -16,7 +16,7 @@ import org.openmrs.module.episodes.search.model.SearchRequest;
 
 public class CriteriaValidator {
 
-    public void validate(SearchRequest request) {
+    public void validateRequest(SearchRequest request) {
         if (request.getCriteria() == null) {
             throw new InvalidSearchCriteriaException("Request must include 'criteria'", SearchResponseErrorStatus.BAD_REQUEST);
         }
@@ -37,7 +37,7 @@ public class CriteriaValidator {
     private void validateLeaf(Condition leaf) {
         if (leaf.getComparator() == null) {
             throw new InvalidSearchCriteriaException(
-                    "Leaf condition for field '" + leaf.getField() + "' is missing or has an unknown 'comparator'. Supported: eq, gt, lt", SearchResponseErrorStatus.BAD_REQUEST);
+                    "Leaf condition for field '" + leaf.getField() + "' is missing 'comparator'. Supported: eq, gt, lt", SearchResponseErrorStatus.BAD_REQUEST);
         }
         if (leaf.getValue() == null || leaf.getValue().isEmpty()) {
             throw new InvalidSearchCriteriaException(

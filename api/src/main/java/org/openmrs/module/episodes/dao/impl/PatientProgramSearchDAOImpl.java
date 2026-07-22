@@ -16,7 +16,8 @@ import org.hibernate.criterion.Restrictions;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
-import org.openmrs.module.episodes.search.impl.PatientProgramCriteriaBuilder;
+import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
+import static org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder.ROOT_ALIAS;
 import org.openmrs.module.episodes.search.model.Condition;
 
 import org.slf4j.Logger;
@@ -40,9 +41,10 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<PatientProgram> search(Condition condition) {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PatientProgram.class, "pp");
-        criteria.add(Restrictions.eq("pp.voided", false));
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PatientProgram.class, ROOT_ALIAS);
+        criteria.add(Restrictions.eq(ROOT_ALIAS + ".voided", false));
 
         // Eagerly fetch associations used by the handler's toMap() to avoid N+1 queries
         criteria.setFetchMode("patient", FetchMode.JOIN);

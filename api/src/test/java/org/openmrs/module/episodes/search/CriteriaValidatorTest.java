@@ -44,12 +44,12 @@ public class CriteriaValidatorTest {
         SearchRequest request = new SearchRequest();
         request.setEntity("patientProgram");
 
-        validator.validate(request);
+        validator.validateRequest(request);
     }
 
     @Test
     public void shouldPassValidationForOrOperatorAtRoot() {
-        validator.validate(requestWith(group(ConditionOperator.OR,
+        validator.validateRequest(requestWith(group(ConditionOperator.OR,
                 leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM))));
     }
 
@@ -59,7 +59,7 @@ public class CriteriaValidatorTest {
                 leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM));
         Condition outer = group(ConditionOperator.AND, inner);
 
-        validator.validate(requestWith(outer));
+        validator.validateRequest(requestWith(outer));
     }
 
     @Test
@@ -71,7 +71,7 @@ public class CriteriaValidatorTest {
         leaf.setField(SearchFields.EpisodeOfCare.START_DATE);
         leaf.setValue(DATE_FROM);
 
-        validator.validate(requestWith(leaf));
+        validator.validateRequest(requestWith(leaf));
     }
 
     @Test
@@ -83,7 +83,7 @@ public class CriteriaValidatorTest {
         leaf.setField(SearchFields.EpisodeOfCare.START_DATE);
         leaf.setComparator(GT);
 
-        validator.validate(requestWith(leaf));
+        validator.validateRequest(requestWith(leaf));
     }
 
     @Test
@@ -91,17 +91,17 @@ public class CriteriaValidatorTest {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("at least one condition");
 
-        validator.validate(requestWith(group(ConditionOperator.AND)));
+        validator.validateRequest(requestWith(group(ConditionOperator.AND)));
     }
 
     @Test
     public void shouldPassValidationForValidLeaf() {
-        validator.validate(requestWith(leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM)));
+        validator.validateRequest(requestWith(leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM)));
     }
 
     @Test
     public void shouldPassValidationForAndGroup() {
-        validator.validate(requestWith(group(ConditionOperator.AND,
+        validator.validateRequest(requestWith(group(ConditionOperator.AND,
                 leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM),
                 leaf(SearchFields.EpisodeOfCare.START_DATE, LT, DATE_TO))));
     }
@@ -116,7 +116,7 @@ public class CriteriaValidatorTest {
                 leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM),
                 inner);
 
-        validator.validate(requestWith(outer));
+        validator.validateRequest(requestWith(outer));
     }
 
     private SearchRequest requestWith(Condition criteria) {

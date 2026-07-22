@@ -7,7 +7,7 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search;
+package org.openmrs.module.episodes.service;
 
 import org.openmrs.annotation.Authorized;
 import org.openmrs.module.episodes.search.constants.EpisodeSearchPrivileges;

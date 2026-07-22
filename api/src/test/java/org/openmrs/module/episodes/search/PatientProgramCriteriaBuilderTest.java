@@ -9,18 +9,14 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.openmrs.module.episodes.search.impl.PatientProgramCriteriaBuilder;
-
 import org.hibernate.Criteria;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
 import org.openmrs.module.episodes.search.constants.SearchFields;
-import org.openmrs.module.episodes.search.model.Condition;
-import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
-
-import java.util.Arrays;
+import org.openmrs.module.episodes.search.model.Condition;
 
 import static org.mockito.Mockito.mock;
 
@@ -47,7 +43,7 @@ public class PatientProgramCriteriaBuilderTest {
     @Test
     public void shouldThrowWhenGtUsedOnTextField() {
         thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("not supported for field 'program.uuid'");
+        thrown.expectMessage("Only 'eq' comparator is supported for field 'program.uuid'");
 
         builder.applyCondition(criteria, leaf(SearchFields.Program.UUID, GT, "uuid"));
     }
@@ -55,7 +51,7 @@ public class PatientProgramCriteriaBuilderTest {
     @Test
     public void shouldThrowWhenComparatorIsNull() {
         thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("Unknown comparator");
+        thrown.expectMessage("Missing comparator for field 'episodeOfCare.startDate'");
 
         builder.applyCondition(criteria, leaf(SearchFields.EpisodeOfCare.START_DATE, null, "2024-01-01"));
     }
@@ -76,10 +72,4 @@ public class PatientProgramCriteriaBuilderTest {
         return c;
     }
 
-    private Condition group(Condition... children) {
-        Condition c = new Condition();
-        c.setOperator(ConditionOperator.AND);
-        c.setConditions(Arrays.asList(children));
-        return c;
-    }
 }
