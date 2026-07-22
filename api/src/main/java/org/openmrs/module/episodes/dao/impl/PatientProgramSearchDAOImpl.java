@@ -10,6 +10,7 @@
 package org.openmrs.module.episodes.dao.impl;
 
 import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.PatientProgram;
@@ -33,12 +34,21 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         this.queryBuilder = queryBuilder;
     }
 
+    private static final int MAX_RESULTS = 200;
+
     @Override
     @SuppressWarnings("unchecked")
     public List<PatientProgram> search(Condition criteria) {
         Criteria c = sessionFactory.getCurrentSession().createCriteria(PatientProgram.class, "pp");
         c.add(Restrictions.eq("pp.voided", false));
+
+        // Eagerly fetch associations used by the handler's toMap() to avoid N+1 queries
+        c.setFetchMode("patient", FetchMode.JOIN);
+        c.setFetchMode("program", FetchMode.JOIN);
+        c.setFetchMode("location", FetchMode.JOIN);
+
         c.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        c.setMaxResults(MAX_RESULTS);
         queryBuilder.applyCondition(c, criteria);
         return c.list();
     }
@@ -53,6 +63,11 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         c.createAlias("ep.patientPrograms", "epp");
         c.add(Restrictions.eq("ep.voided", false));
         c.add(Restrictions.in("epp.patientProgramId", patientProgramIds));
+
+        // Eagerly fetch careManager used by the handler's toEpisodeMap()
+        c.setFetchMode("careManager", FetchMode.JOIN);
+        c.setFetchMode("patientPrograms", FetchMode.JOIN);
+
         c.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
         return c.list();
     }
