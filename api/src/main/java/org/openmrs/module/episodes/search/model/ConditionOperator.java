@@ -7,16 +7,15 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.criteria;
+package org.openmrs.module.episodes.search.model;
 
-public enum FieldComparator {
+public enum ConditionOperator {
+    AND, OR;
 
-    EQ, GT, LT;
-
-    public static FieldComparator fromString(String s) {
+    public static ConditionOperator fromString(String s) {
         if (s == null) return null;
         try {
-            return FieldComparator.valueOf(s.toUpperCase());
+            return ConditionOperator.valueOf(s.toUpperCase());
         } catch (IllegalArgumentException e) {
             return null;
         }

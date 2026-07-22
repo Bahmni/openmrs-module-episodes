@@ -11,7 +11,7 @@ package org.openmrs.module.episodes.dao;
 
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.search.criteria.Condition;
+import org.openmrs.module.episodes.search.model.Condition;
 
 import java.util.List;
 import java.util.Set;

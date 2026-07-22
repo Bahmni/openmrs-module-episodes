@@ -7,7 +7,7 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.handlers;
+package org.openmrs.module.episodes.search.impl;
 
 import org.openmrs.Concept;
 import org.openmrs.Location;
@@ -20,80 +20,24 @@ import org.openmrs.Program;
 import org.openmrs.ProgramWorkflow;
 import org.openmrs.ProgramWorkflowState;
 import org.openmrs.Provider;
+import org.openmrs.attribute.Attribute;
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
-import org.openmrs.module.episodes.search.criteria.CriteriaValidator;
-import org.openmrs.module.episodes.search.SearchHandler;
-import org.openmrs.module.episodes.search.criteria.SearchRequest;
 
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-public class PatientProgramSearchHandler implements SearchHandler {
-
-    private static final String ENTITY = "patientProgram";
+public class PatientProgramResponseMapper {
 
     private static final DateTimeFormatter DATE_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").withZone(ZoneOffset.UTC);
 
-    private final PatientProgramSearchDAO patientProgramSearchDAO;
-    private final CriteriaValidator validator;
-
-    public PatientProgramSearchHandler(PatientProgramSearchDAO patientProgramSearchDAO,
-            CriteriaValidator validator) {
-        this.patientProgramSearchDAO = patientProgramSearchDAO;
-        this.validator = validator;
-    }
-
-    @Override
-    public String getEntity() {
-        return ENTITY;
-    }
-
-    @Override
-    public List<Map<String, Object>> search(SearchRequest request) {
-        validator.validate(request);
-        List<PatientProgram> patientPrograms = patientProgramSearchDAO.search(request.getCriteria());
-        if (patientPrograms.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        Set<Integer> patientProgramIds = new HashSet<>();
-        for (PatientProgram pp : patientPrograms) {
-            patientProgramIds.add(pp.getPatientProgramId());
-        }
-        Map<Integer, Map<String, Object>> episodeByPpId = buildEpisodeByPatientProgramId(patientProgramIds);
-
-        List<Map<String, Object>> results = new ArrayList<>();
-        for (PatientProgram pp : patientPrograms) {
-            results.add(toMap(pp, episodeByPpId.get(pp.getPatientProgramId())));
-        }
-        return results;
-    }
-
-    private Map<Integer, Map<String, Object>> buildEpisodeByPatientProgramId(Set<Integer> patientProgramIds) {
-        Map<Integer, Map<String, Object>> index = new HashMap<>();
-        for (Episode episode : patientProgramSearchDAO.getEpisodesForPatientProgramIds(patientProgramIds)) {
-            Map<String, Object> episodeMap = toEpisodeMap(episode);
-            for (PatientProgram pp : episode.getPatientPrograms()) {
-                if (patientProgramIds.contains(pp.getPatientProgramId())) {
-                    index.put(pp.getPatientProgramId(), episodeMap);
-                }
-            }
-        }
-        return index;
-    }
-
-    private Map<String, Object> toMap(PatientProgram pp, Map<String, Object> episode) {
+    Map<String, Object> toMap(PatientProgram pp, Map<String, Object> episode) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("uuid", pp.getUuid());
         map.put("dateEnrolled", formatDate(pp.getDateEnrolled()));
@@ -104,6 +48,16 @@ public class PatientProgramSearchHandler implements SearchHandler {
         map.put("attributes", toAttributesList(pp));
         map.put("currentState", toCurrentStateMap(pp));
         map.put("episode", episode);
+        return map;
+    }
+
+    Map<String, Object> toEpisodeMap(Episode episode) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("uuid", episode.getUuid());
+        map.put("status", episode.getStatus() != null ? episode.getStatus().name() : null);
+        map.put("dateStarted", formatDate(episode.getDateStarted()));
+        map.put("dateEnded", formatDate(episode.getDateEnded()));
+        map.put("careManager", toCareManagerMap(episode.getCareManager()));
         return map;
     }
 
@@ -122,7 +76,6 @@ public class PatientProgramSearchHandler implements SearchHandler {
     private Map<String, Object> toPersonNameMap(PersonName name) {
         if (name == null) return null;
         Map<String, Object> map = new LinkedHashMap<>();
-
         map.put("givenName", name.getGivenName());
         map.put("middleName", name.getMiddleName());
         map.put("familyName", name.getFamilyName());
@@ -165,7 +118,7 @@ public class PatientProgramSearchHandler implements SearchHandler {
 
     private List<Map<String, Object>> toAttributesList(PatientProgram pp) {
         List<Map<String, Object>> list = new ArrayList<>();
-        for (org.openmrs.attribute.Attribute<?, ?> attr : pp.getActiveAttributes()) {
+        for (Attribute<?, ?> attr : pp.getActiveAttributes()) {
             Map<String, Object> attrMap = new LinkedHashMap<>();
             attrMap.put("uuid", attr.getUuid());
             attrMap.put("value", attr.getValueReference());
@@ -186,32 +139,29 @@ public class PatientProgramSearchHandler implements SearchHandler {
 
         ProgramWorkflowState wfState = current.getState();
         if (wfState != null) {
-            Map<String, Object> stateMap = new LinkedHashMap<>();
-            stateMap.put("uuid", wfState.getUuid());
-            stateMap.put("concept", toConceptRef(wfState.getConcept()));
-            stateMap.put("initial", Boolean.TRUE.equals(wfState.getInitial()));
-            stateMap.put("terminal", Boolean.TRUE.equals(wfState.getTerminal()));
-            map.put("state", stateMap);
-
+            map.put("state", toWorkflowStateMap(wfState));
             ProgramWorkflow wf = wfState.getProgramWorkflow();
             if (wf != null) {
-                Map<String, Object> wfMap = new LinkedHashMap<>();
-                wfMap.put("uuid", wf.getUuid());
-                wfMap.put("concept", toConceptRef(wf.getConcept()));
-                map.put("workflow", wfMap);
+                map.put("workflow", toWorkflowMap(wf));
             }
         }
         return map;
     }
 
-    private Map<String, Object> toEpisodeMap(Episode episode) {
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("uuid", episode.getUuid());
-        map.put("status", episode.getStatus() != null ? episode.getStatus().name() : null);
-        map.put("dateStarted", formatDate(episode.getDateStarted()));
-        map.put("dateEnded", formatDate(episode.getDateEnded()));
-        map.put("careManager", toCareManagerMap(episode.getCareManager()));
-        return map;
+    private Map<String, Object> toWorkflowStateMap(ProgramWorkflowState wfState) {
+        Map<String, Object> stateMap = new LinkedHashMap<>();
+        stateMap.put("uuid", wfState.getUuid());
+        stateMap.put("concept", toConceptRef(wfState.getConcept()));
+        stateMap.put("initial", Boolean.TRUE.equals(wfState.getInitial()));
+        stateMap.put("terminal", Boolean.TRUE.equals(wfState.getTerminal()));
+        return stateMap;
+    }
+
+    private Map<String, Object> toWorkflowMap(ProgramWorkflow wf) {
+        Map<String, Object> wfMap = new LinkedHashMap<>();
+        wfMap.put("uuid", wf.getUuid());
+        wfMap.put("concept", toConceptRef(wf.getConcept()));
+        return wfMap;
     }
 
     private Map<String, Object> toCareManagerMap(Provider provider) {
@@ -239,6 +189,10 @@ public class PatientProgramSearchHandler implements SearchHandler {
         return map;
     }
 
+    /**
+     * Selects the "current" state from a collection of patient states.
+     * Prefers active (no end date) states; falls back to the latest ended state.
+     */
     public static PatientState selectCurrentState(Collection<PatientState> states) {
         List<PatientState> active = new ArrayList<>();
         List<PatientState> ended = new ArrayList<>();
@@ -251,14 +205,14 @@ public class PatientProgramSearchHandler implements SearchHandler {
     }
 
     private static PatientState latestByStartDate(List<PatientState> states) {
-        PatientState latest = states.get(0);
+        PatientState latest = null;
         for (PatientState state : states) {
-            if (state.getStartDate() != null && latest.getStartDate() != null
-                    && state.getStartDate().after(latest.getStartDate())) {
+            if (state.getStartDate() == null) continue;
+            if (latest == null || state.getStartDate().after(latest.getStartDate())) {
                 latest = state;
             }
         }
-        return latest;
+        return latest != null ? latest : states.get(0);
     }
 
     private static PatientState latestByEndDate(List<PatientState> states) {

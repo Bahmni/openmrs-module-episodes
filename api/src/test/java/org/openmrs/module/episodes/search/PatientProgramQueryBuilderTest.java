@@ -9,15 +9,15 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.openmrs.module.episodes.search.query.PatientProgramQueryBuilder;
+import org.openmrs.module.episodes.search.impl.PatientProgramQueryBuilder;
 
 import org.hibernate.Criteria;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openmrs.module.episodes.search.constants.SearchFields;
-import org.openmrs.module.episodes.search.criteria.Condition;
-import org.openmrs.module.episodes.search.criteria.ConditionOperator;
+import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 
 import java.util.Arrays;

@@ -16,14 +16,19 @@ import org.hibernate.criterion.Restrictions;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
-import org.openmrs.module.episodes.search.query.PatientProgramQueryBuilder;
-import org.openmrs.module.episodes.search.criteria.Condition;
+import org.openmrs.module.episodes.search.impl.PatientProgramQueryBuilder;
+import org.openmrs.module.episodes.search.model.Condition;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
+
+    private static final Logger log = LoggerFactory.getLogger(PatientProgramSearchDAOImpl.class);
 
     private final SessionFactory sessionFactory;
     private final PatientProgramQueryBuilder queryBuilder;
@@ -34,23 +39,19 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         this.queryBuilder = queryBuilder;
     }
 
-    private static final int MAX_RESULTS = 200;
-
     @Override
-    @SuppressWarnings("unchecked")
-    public List<PatientProgram> search(Condition criteria) {
-        Criteria c = sessionFactory.getCurrentSession().createCriteria(PatientProgram.class, "pp");
-        c.add(Restrictions.eq("pp.voided", false));
+    public List<PatientProgram> search(Condition condition) {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PatientProgram.class, "pp");
+        criteria.add(Restrictions.eq("pp.voided", false));
 
         // Eagerly fetch associations used by the handler's toMap() to avoid N+1 queries
-        c.setFetchMode("patient", FetchMode.JOIN);
-        c.setFetchMode("program", FetchMode.JOIN);
-        c.setFetchMode("location", FetchMode.JOIN);
+        criteria.setFetchMode("patient", FetchMode.JOIN);
+        criteria.setFetchMode("program", FetchMode.JOIN);
+        criteria.setFetchMode("location", FetchMode.JOIN);
 
-        c.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-        c.setMaxResults(MAX_RESULTS);
-        queryBuilder.applyCondition(c, criteria);
-        return c.list();
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        queryBuilder.applyCondition(criteria, condition);
+        return criteria.list();
     }
 
     @Override
@@ -59,16 +60,16 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         if (patientProgramIds.isEmpty()) {
             return Collections.emptyList();
         }
-        Criteria c = sessionFactory.getCurrentSession().createCriteria(Episode.class, "ep");
-        c.createAlias("ep.patientPrograms", "epp");
-        c.add(Restrictions.eq("ep.voided", false));
-        c.add(Restrictions.in("epp.patientProgramId", patientProgramIds));
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Episode.class, "ep");
+        criteria.createAlias("ep.patientPrograms", "epp");
+        criteria.add(Restrictions.eq("ep.voided", false));
+        criteria.add(Restrictions.in("epp.patientProgramId", patientProgramIds));
 
         // Eagerly fetch careManager used by the handler's toEpisodeMap()
-        c.setFetchMode("careManager", FetchMode.JOIN);
-        c.setFetchMode("patientPrograms", FetchMode.JOIN);
+        criteria.setFetchMode("careManager", FetchMode.JOIN);
+        criteria.setFetchMode("patientPrograms", FetchMode.JOIN);
 
-        c.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-        return c.list();
+        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        return criteria.list();
     }
 }

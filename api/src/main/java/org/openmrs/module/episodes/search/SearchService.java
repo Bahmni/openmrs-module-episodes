@@ -11,19 +11,20 @@ package org.openmrs.module.episodes.search;
 
 import org.openmrs.annotation.Authorized;
 import org.openmrs.module.episodes.search.constants.EpisodeSearchPrivileges;
-import org.openmrs.module.episodes.search.criteria.SearchRequest;
+import org.openmrs.module.episodes.search.model.SearchRequest;
 
 import java.util.List;
 import java.util.Map;
 
-public interface SearchHandler {
+
+public interface SearchService {
 
     String getEntity();
 
     @Authorized(value = {
             EpisodeSearchPrivileges.GET_EPISODES,
             EpisodeSearchPrivileges.GET_PROGRAMS,
-            EpisodeSearchPrivileges.GET_PROVIDER_ATTRIBUTE_TYPES, // needs to be checked
+            EpisodeSearchPrivileges.GET_PROVIDER_ATTRIBUTE_TYPES,
             EpisodeSearchPrivileges.GET_PATIENT_PROGRAM_ATTRIBUTE_TYPES,
             EpisodeSearchPrivileges.GET_PATIENT_PROGRAMS,
             EpisodeSearchPrivileges.GET_PATIENTS,

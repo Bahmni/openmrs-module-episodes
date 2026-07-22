@@ -7,7 +7,7 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.query;
+package org.openmrs.module.episodes.search.impl;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
@@ -16,7 +16,7 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.search.constants.SearchFields;
-import org.openmrs.module.episodes.search.criteria.FieldComparator;
+import org.openmrs.module.episodes.search.model.FieldComparator;
 
 import java.util.Arrays;
 import java.util.Collections;
