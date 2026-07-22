@@ -16,7 +16,7 @@ import org.hibernate.criterion.Restrictions;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
-import org.openmrs.module.episodes.search.impl.PatientProgramQueryBuilder;
+import org.openmrs.module.episodes.search.impl.PatientProgramCriteriaBuilder;
 import org.openmrs.module.episodes.search.model.Condition;
 
 import org.slf4j.Logger;
@@ -31,12 +31,12 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
     private static final Logger log = LoggerFactory.getLogger(PatientProgramSearchDAOImpl.class);
 
     private final SessionFactory sessionFactory;
-    private final PatientProgramQueryBuilder queryBuilder;
+    private final PatientProgramCriteriaBuilder criteriaBuilder;
 
     public PatientProgramSearchDAOImpl(SessionFactory sessionFactory,
-            PatientProgramQueryBuilder queryBuilder) {
+            PatientProgramCriteriaBuilder criteriaBuilder) {
         this.sessionFactory = sessionFactory;
-        this.queryBuilder = queryBuilder;
+        this.criteriaBuilder = criteriaBuilder;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         criteria.setFetchMode("location", FetchMode.JOIN);
 
         criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-        queryBuilder.applyCondition(criteria, condition);
+        criteriaBuilder.applyCondition(criteria, condition);
         return criteria.list();
     }
 
