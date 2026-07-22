@@ -21,9 +21,9 @@ import org.openmrs.annotation.Authorized;
 import org.openmrs.api.APIAuthenticationException;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.episodes.search.criteria.Condition;
-import org.openmrs.module.episodes.search.criteria.ConditionOperator;
-import org.openmrs.module.episodes.search.criteria.SearchRequest;
+import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.ConditionOperator;
+import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,17 +44,17 @@ public class PatientProgramSearchHandlerPrivilegeITTest extends BaseModuleContex
 
     private static String[] resolveRequiredPrivileges() {
         try {
-            return SearchHandler.class
+            return SearchService.class
                     .getMethod("search", SearchRequest.class)
                     .getAnnotation(Authorized.class)
                     .value();
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not resolve @Authorized privileges from SearchHandler", e);
+            throw new RuntimeException("Could not resolve @Authorized privileges from SearchService", e);
         }
     }
 
     @Autowired
-    private SearchHandler searchHandler;
+    private SearchService searchService;
 
     @Autowired
     private UserService userService;
@@ -79,7 +79,7 @@ public class PatientProgramSearchHandlerPrivilegeITTest extends BaseModuleContex
             User user = usersWithoutPrivilege.get(missingPrivilege);
             Context.authenticate(user.getUsername(), TEST_PASSWORD);
             try {
-                searchHandler.search(validRequest());
+                searchService.search(validRequest());
                 fail("Expected APIAuthenticationException when missing privilege: " + missingPrivilege);
             } catch (APIAuthenticationException e) {
                 // expected

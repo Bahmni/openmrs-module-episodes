@@ -7,10 +7,12 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.criteria;
+package org.openmrs.module.episodes.search.validation;
 
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
+import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.SearchRequest;
 
 public class CriteriaValidator {
 

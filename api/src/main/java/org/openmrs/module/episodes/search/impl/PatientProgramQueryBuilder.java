@@ -7,18 +7,18 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.query;
+package org.openmrs.module.episodes.search.impl;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
-import org.openmrs.module.episodes.search.criteria.Condition;
-import org.openmrs.module.episodes.search.criteria.ConditionOperator;
-import org.openmrs.module.episodes.search.criteria.FieldComparator;
+import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.ConditionOperator;
+import org.openmrs.module.episodes.search.model.FieldComparator;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
-import org.openmrs.module.episodes.search.query.PatientProgramFieldRegistry.AliasDescriptor;
-import org.openmrs.module.episodes.search.query.PatientProgramFieldRegistry.FieldDescriptor;
+import org.openmrs.module.episodes.search.impl.PatientProgramFieldRegistry.AliasDescriptor;
+import org.openmrs.module.episodes.search.impl.PatientProgramFieldRegistry.FieldDescriptor;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;

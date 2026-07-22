@@ -9,7 +9,7 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.openmrs.module.episodes.search.handlers.PatientProgramSearchHandler;
+import org.openmrs.module.episodes.search.impl.PatientProgramSearchHandler;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -19,11 +19,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
-import org.openmrs.module.episodes.search.criteria.Condition;
-import org.openmrs.module.episodes.search.criteria.CriteriaValidator;
-import org.openmrs.module.episodes.search.criteria.ConditionOperator;
+import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.validation.CriteriaValidator;
+import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
-import org.openmrs.module.episodes.search.criteria.SearchRequest;
+import org.openmrs.module.episodes.search.model.SearchRequest;
 
 import java.util.Collections;
 

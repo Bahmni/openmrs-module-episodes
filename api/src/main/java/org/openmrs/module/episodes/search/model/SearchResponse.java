@@ -7,7 +7,7 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.criteria;
+package org.openmrs.module.episodes.search.model;
 
 import java.util.Collections;
 import java.util.List;

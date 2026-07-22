@@ -25,9 +25,9 @@ import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.search.constants.SearchFields;
-import org.openmrs.module.episodes.search.criteria.Condition;
-import org.openmrs.module.episodes.search.criteria.ConditionOperator;
-import org.openmrs.module.episodes.search.criteria.SearchRequest;
+import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.ConditionOperator;
+import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.service.EpisodeService;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
@@ -51,7 +51,7 @@ public class PatientProgramSearchHandlerITTest extends BaseModuleContextSensitiv
     private static final String DATE_TO = "2024-12-31";
 
     @Autowired
-    private SearchHandler searchHandler;
+    private SearchService searchService;
 
     @Autowired
     private EpisodeService episodeService;
@@ -76,7 +76,7 @@ public class PatientProgramSearchHandlerITTest extends BaseModuleContextSensitiv
         PatientProgram pp = programWorkflowService.getPatientProgram(1);
         saveEpisodeWith(pp);
 
-        List<Map<String, Object>> results = searchHandler.search(
+        List<Map<String, Object>> results = searchService.search(
                 requestWith(leaf(SearchFields.Program.UUID, EQ, pp.getProgram().getUuid()))
         );
 
@@ -97,7 +97,7 @@ public class PatientProgramSearchHandlerITTest extends BaseModuleContextSensitiv
                 leaf(SearchFields.EpisodeOfCare.START_DATE, LT, DATE_TO)
         );
 
-        List<Map<String, Object>> results = searchHandler.search(requestWith(range));
+        List<Map<String, Object>> results = searchService.search(requestWith(range));
 
         assertThat(results.size(), is(1));
         assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
@@ -109,7 +109,7 @@ public class PatientProgramSearchHandlerITTest extends BaseModuleContextSensitiv
         PatientProgram pp = programWorkflowService.getPatientProgram(1);
         saveEpisodeWith(pp);
 
-        List<Map<String, Object>> results = searchHandler.search(
+        List<Map<String, Object>> results = searchService.search(
                 requestWith(leaf(SearchFields.Program.UUID, EQ, pp.getProgram().getUuid()))
         );
 
@@ -136,7 +136,7 @@ public class PatientProgramSearchHandlerITTest extends BaseModuleContextSensitiv
         episode.setCareManager(provider);
         episodeService.save(episode);
 
-        List<Map<String, Object>> results = searchHandler.search(
+        List<Map<String, Object>> results = searchService.search(
                 requestWith(leaf(SearchFields.EpisodeOfCare.CARE_MANAGER, EQ, provider.getUuid()))
         );
 
@@ -152,7 +152,7 @@ public class PatientProgramSearchHandlerITTest extends BaseModuleContextSensitiv
         programWorkflowService.savePatientProgram(pp);
         saveEpisodeWith(pp);
 
-        List<Map<String, Object>> results = searchHandler.search(
+        List<Map<String, Object>> results = searchService.search(
                 requestWith(leaf(SearchFields.Program.LOCATION, EQ, location.getUuid()))
         );
 
@@ -162,7 +162,7 @@ public class PatientProgramSearchHandlerITTest extends BaseModuleContextSensitiv
 
     @Test
     public void shouldReturnEmptyListWhenNoCriteriaMatch() {
-        List<Map<String, Object>> results = searchHandler.search(
+        List<Map<String, Object>> results = searchService.search(
                 requestWith(leaf(SearchFields.Program.UUID, EQ, "non-existent-uuid"))
         );
 
@@ -181,24 +181,24 @@ public class PatientProgramSearchHandlerITTest extends BaseModuleContextSensitiv
                 leaf(SearchFields.Program.UUID, EQ, "non-existent-uuid")
         ));
 
-        List<Map<String, Object>> results = searchHandler.search(requestWith(criteria));
+        List<Map<String, Object>> results = searchService.search(requestWith(criteria));
         assertThat(results.size(), is(1));
         assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
     }
 
     @Test(expected = InvalidSearchCriteriaException.class)
     public void shouldThrowExceptionForUnknownSearchField() {
-        searchHandler.search(requestWith(leaf("episode.unknownField", EQ, "value")));
+        searchService.search(requestWith(leaf("episode.unknownField", EQ, "value")));
     }
 
     @Test(expected = InvalidSearchCriteriaException.class)
     public void shouldThrowExceptionForUnsupportedComparator() {
-        searchHandler.search(requestWith(leaf(SearchFields.Program.UUID, GT, "uuid")));
+        searchService.search(requestWith(leaf(SearchFields.Program.UUID, GT, "uuid")));
     }
 
     @Test(expected = InvalidSearchCriteriaException.class)
     public void shouldThrowExceptionForInvalidDateFormat() {
-        searchHandler.search(requestWith(leaf(SearchFields.EpisodeOfCare.START_DATE, GT, "01/01/2024")));
+        searchService.search(requestWith(leaf(SearchFields.EpisodeOfCare.START_DATE, GT, "01/01/2024")));
     }
 
     private Episode saveEpisodeWith(PatientProgram pp) {

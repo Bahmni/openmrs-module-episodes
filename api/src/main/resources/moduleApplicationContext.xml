@@ -26,19 +26,19 @@
 	<bean id="patientProgramSearchDao" class="org.openmrs.module.episodes.dao.impl.PatientProgramSearchDAOImpl">
 		<constructor-arg name="sessionFactory" ref="sessionFactory"/>
 		<constructor-arg name="queryBuilder">
-			<bean class="org.openmrs.module.episodes.search.query.PatientProgramQueryBuilder"/>
+			<bean class="org.openmrs.module.episodes.search.impl.PatientProgramQueryBuilder"/>
 		</constructor-arg>
 	</bean>
 
-	<bean id="patientProgramSearchHandler" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+	<bean id="patientProgramSearchService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
 		<property name="transactionManager">
 			<ref bean="transactionManager"/>
 		</property>
 		<property name="target">
-			<bean class="org.openmrs.module.episodes.search.handlers.PatientProgramSearchHandler">
+			<bean class="org.openmrs.module.episodes.search.impl.PatientProgramSearchHandler">
 				<constructor-arg name="patientProgramSearchDAO" ref="patientProgramSearchDao"/>
 				<constructor-arg name="validator">
-					<bean class="org.openmrs.module.episodes.search.criteria.CriteriaValidator"/>
+					<bean class="org.openmrs.module.episodes.search.validation.CriteriaValidator"/>
 				</constructor-arg>
 			</bean>
 		</property>
