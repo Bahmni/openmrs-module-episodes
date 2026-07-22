@@ -9,12 +9,16 @@
 
 package org.openmrs.module.episodes.dao;
 
+import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.search.BuiltQuery;
+import org.openmrs.module.episodes.search.criteria.Condition;
 
 import java.util.List;
+import java.util.Set;
 
-public interface EpisodeSearchDAO {
+public interface PatientProgramSearchDAO {
 
-    List<Episode> search(BuiltQuery builtQuery);
+    List<PatientProgram> search(Condition criteria);
+
+    List<Episode> getEpisodesForPatientProgramIds(Set<Integer> patientProgramIds);
 }

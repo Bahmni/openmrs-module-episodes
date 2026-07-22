@@ -10,10 +10,11 @@
 package org.openmrs.module.episodes.web.controller;
 
 import org.openmrs.api.context.Context;
-import org.openmrs.module.episodes.search.dto.EpisodeSearchResultDTO;
-import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
+import org.openmrs.module.episodes.search.SearchHandler;
+import org.openmrs.module.episodes.search.SearchResponse;
 import org.openmrs.module.episodes.search.criteria.SearchRequest;
-import org.openmrs.module.episodes.service.EpisodeSearchService;
+import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
+import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,15 +32,15 @@ import java.util.Map;
 @RequestMapping("/rest/v1/episode")
 public class EpisodeSearchController {
 
-    private EpisodeSearchService episodeSearchService;
+    private Map<String, SearchHandler> handlerRegistry;
 
     @PostConstruct
     public void init() {
-        List<EpisodeSearchService> services = Context.getRegisteredComponents(EpisodeSearchService.class);
-        if (services.isEmpty()) {
-            throw new IllegalStateException("EpisodeSearchService not found in application context");
+        handlerRegistry = new HashMap<>();
+        List<SearchHandler> handlers = Context.getRegisteredComponents(SearchHandler.class);
+        for (SearchHandler handler : handlers) {
+            handlerRegistry.put(handler.getEntity(), handler);
         }
-        episodeSearchService = services.get(0);
     }
 
     @RequestMapping(
@@ -49,16 +50,30 @@ public class EpisodeSearchController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> search(@RequestBody SearchRequest request) {
+    public ResponseEntity<?> search(@RequestBody SearchRequest request) {
         try {
-            List<EpisodeSearchResultDTO> results = episodeSearchService.search(request);
-            Map<String, Object> response = new HashMap<>();
-            response.put("results", results);
-            return ResponseEntity.ok(response);
+            SearchHandler handler = resolveHandler(request);
+            List<Map<String, Object>> results = handler.search(request);
+            return ResponseEntity.ok(new SearchResponse(results));
         } catch (InvalidSearchCriteriaException e) {
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(e.getStatus().getCode()).body(error);
         }
+    }
+
+    private SearchHandler resolveHandler(SearchRequest request) {
+        String entity = request.getEntity();
+        if (entity == null || entity.isEmpty()) {
+            throw new InvalidSearchCriteriaException(
+                    "Request must include 'entity'", SearchResponseErrorStatus.BAD_REQUEST);
+        }
+        SearchHandler handler = handlerRegistry.get(entity);
+        if (handler == null) {
+            throw new InvalidSearchCriteriaException(
+                    "Entity '" + entity + "' is not supported. Supported entities: " + handlerRegistry.keySet(),
+                    SearchResponseErrorStatus.BAD_REQUEST);
+        }
+        return handler;
     }
 }

@@ -36,35 +36,12 @@ public class CriteriaValidatorTest {
     private final CriteriaValidator validator = new CriteriaValidator();
 
     @Test
-    public void shouldThrowWhenEntityIsMissing() {
-        thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("'entity'");
-
-        SearchRequest request = new SearchRequest();
-        request.setCriteria(leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM));
-
-        validator.validate(request);
-    }
-
-    @Test
-    public void shouldThrowWhenEntityIsNotSupported() {
-        thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("'patient'");
-
-        SearchRequest request = new SearchRequest();
-        request.setEntity("patient");
-        request.setCriteria(leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM));
-
-        validator.validate(request);
-    }
-
-    @Test
     public void shouldThrowWhenCriteriaIsMissing() {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("'criteria'");
 
         SearchRequest request = new SearchRequest();
-        request.setEntity("episodeOfCare");
+        request.setEntity("patientProgram");
 
         validator.validate(request);
     }
@@ -149,7 +126,7 @@ public class CriteriaValidatorTest {
 
     private SearchRequest requestWith(Condition criteria) {
         SearchRequest request = new SearchRequest();
-        request.setEntity("episodeOfCare");
+        request.setEntity("patientProgram");
         request.setCriteria(criteria);
         return request;
     }

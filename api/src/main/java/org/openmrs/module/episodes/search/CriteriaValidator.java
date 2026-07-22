@@ -16,16 +16,7 @@ import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
 
 public class CriteriaValidator {
 
-    private static final String SUPPORTED_ENTITY = "episodeOfCare";
-
     public void validate(SearchRequest request) {
-        if (request.getEntity() == null || request.getEntity().isEmpty()) {
-            throw new InvalidSearchCriteriaException("Request must include 'entity'", SearchResponseErrorStatus.BAD_REQUEST);
-        }
-        if (!SUPPORTED_ENTITY.equals(request.getEntity())) {
-            throw new InvalidSearchCriteriaException(
-                    "Entity '" + request.getEntity() + "' is not handled by this endpoint. Expected: episodeOfCare", SearchResponseErrorStatus.BAD_REQUEST);
-        }
         if (request.getCriteria() == null) {
             throw new InvalidSearchCriteriaException("Request must include 'criteria'", SearchResponseErrorStatus.BAD_REQUEST);
         }

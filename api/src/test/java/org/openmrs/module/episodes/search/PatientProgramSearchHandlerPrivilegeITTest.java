@@ -7,7 +7,7 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.service.impl;
+package org.openmrs.module.episodes.search;
 
 import org.junit.After;
 import org.junit.Before;
@@ -24,7 +24,6 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.episodes.search.criteria.Condition;
 import org.openmrs.module.episodes.search.criteria.ConditionOperator;
 import org.openmrs.module.episodes.search.criteria.SearchRequest;
-import org.openmrs.module.episodes.service.EpisodeSearchService;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,7 +36,7 @@ import java.util.UUID;
 
 import static org.junit.Assert.fail;
 
-public class EpisodeSearchServiceImplITTest extends BaseModuleContextSensitiveTest {
+public class PatientProgramSearchHandlerPrivilegeITTest extends BaseModuleContextSensitiveTest {
 
     private static final String TEST_PASSWORD = "Admin123!";
 
@@ -45,17 +44,17 @@ public class EpisodeSearchServiceImplITTest extends BaseModuleContextSensitiveTe
 
     private static String[] resolveRequiredPrivileges() {
         try {
-            return EpisodeSearchService.class
+            return SearchHandler.class
                     .getMethod("search", SearchRequest.class)
                     .getAnnotation(Authorized.class)
                     .value();
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not resolve @Authorized privileges from EpisodeSearchService", e);
+            throw new RuntimeException("Could not resolve @Authorized privileges from SearchHandler", e);
         }
     }
 
     @Autowired
-    private EpisodeSearchService episodeSearchService;
+    private SearchHandler searchHandler;
 
     @Autowired
     private UserService userService;
@@ -80,7 +79,7 @@ public class EpisodeSearchServiceImplITTest extends BaseModuleContextSensitiveTe
             User user = usersWithoutPrivilege.get(missingPrivilege);
             Context.authenticate(user.getUsername(), TEST_PASSWORD);
             try {
-                episodeSearchService.search(validRequest());
+                searchHandler.search(validRequest());
                 fail("Expected APIAuthenticationException when missing privilege: " + missingPrivilege);
             } catch (APIAuthenticationException e) {
                 // expected
@@ -133,7 +132,7 @@ public class EpisodeSearchServiceImplITTest extends BaseModuleContextSensitiveTe
         criteria.setConditions(Collections.singletonList(leaf));
 
         SearchRequest request = new SearchRequest();
-        request.setEntity("episodeOfCare");
+        request.setEntity("patientProgram");
         request.setCriteria(criteria);
         return request;
     }

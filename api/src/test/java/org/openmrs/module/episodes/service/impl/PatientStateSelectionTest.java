@@ -11,6 +11,7 @@ package org.openmrs.module.episodes.service.impl;
 
 import org.junit.Test;
 import org.openmrs.PatientState;
+import org.openmrs.module.episodes.search.handlers.PatientProgramSearchHandler;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -27,7 +28,7 @@ public class PatientStateSelectionTest {
 
     @Test
     public void shouldReturnNullWhenNoStates() {
-        assertThat(EpisodeSearchServiceImpl.selectCurrentState(Collections.emptySet()), is(nullValue()));
+        assertThat(PatientProgramSearchHandler.selectCurrentState(Collections.emptySet()), is(nullValue()));
     }
 
     @Test
@@ -35,14 +36,14 @@ public class PatientStateSelectionTest {
         PatientState voided = state(date(2024, 1, 1), null);
         voided.setVoided(true);
 
-        assertThat(EpisodeSearchServiceImpl.selectCurrentState(setOf(voided)), is(nullValue()));
+        assertThat(PatientProgramSearchHandler.selectCurrentState(setOf(voided)), is(nullValue()));
     }
 
     @Test
     public void shouldReturnSingleActiveState() {
         PatientState active = state(date(2024, 1, 1), null);
 
-        assertThat(EpisodeSearchServiceImpl.selectCurrentState(setOf(active)), is(active));
+        assertThat(PatientProgramSearchHandler.selectCurrentState(setOf(active)), is(active));
     }
 
     @Test
@@ -50,7 +51,7 @@ public class PatientStateSelectionTest {
         PatientState ended = state(date(2023, 1, 1), date(2023, 6, 1));
         PatientState active = state(date(2024, 1, 1), null);
 
-        assertThat(EpisodeSearchServiceImpl.selectCurrentState(setOf(ended, active)), is(active));
+        assertThat(PatientProgramSearchHandler.selectCurrentState(setOf(ended, active)), is(active));
     }
 
     @Test
@@ -58,7 +59,7 @@ public class PatientStateSelectionTest {
         PatientState earlier = state(date(2023, 1, 1), null);
         PatientState later = state(date(2024, 6, 1), null);
 
-        assertThat(EpisodeSearchServiceImpl.selectCurrentState(setOf(earlier, later)), is(later));
+        assertThat(PatientProgramSearchHandler.selectCurrentState(setOf(earlier, later)), is(later));
     }
 
     @Test
@@ -66,7 +67,7 @@ public class PatientStateSelectionTest {
         PatientState older = state(date(2022, 1, 1), date(2022, 12, 31));
         PatientState newer = state(date(2023, 1, 1), date(2023, 12, 31));
 
-        assertThat(EpisodeSearchServiceImpl.selectCurrentState(setOf(older, newer)), is(newer));
+        assertThat(PatientProgramSearchHandler.selectCurrentState(setOf(older, newer)), is(newer));
     }
 
     @Test
@@ -75,7 +76,7 @@ public class PatientStateSelectionTest {
         PatientState voidedActive = state(date(2024, 1, 1), null);
         voidedActive.setVoided(true);
 
-        assertThat(EpisodeSearchServiceImpl.selectCurrentState(setOf(active, voidedActive)), is(active));
+        assertThat(PatientProgramSearchHandler.selectCurrentState(setOf(active, voidedActive)), is(active));
     }
 
     private PatientState state(Date startDate, Date endDate) {

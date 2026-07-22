@@ -9,16 +9,18 @@
 
 package org.openmrs.module.episodes.search;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
+import java.util.List;
 import java.util.Map;
 
-@AllArgsConstructor
-@Getter
-public class BuiltQuery {
+public class SearchResponse {
 
-    private final String hql;
-    private final Map<String, Object> parameters;
-    private final String searchedAttributeTypeUuid;
+    private final List<Map<String, Object>> results;
+
+    public SearchResponse(List<Map<String, Object>> results) {
+        this.results = results;
+    }
+
+    public List<Map<String, Object>> getResults() {
+        return results;
+    }
 }
