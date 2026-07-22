@@ -9,7 +9,7 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.openmrs.module.episodes.search.impl.PatientProgramQueryBuilder;
+import org.openmrs.module.episodes.search.impl.PatientProgramCriteriaBuilder;
 
 import org.hibernate.Criteria;
 import org.junit.Rule;
@@ -24,7 +24,7 @@ import java.util.Arrays;
 
 import static org.mockito.Mockito.mock;
 
-public class PatientProgramQueryBuilderTest {
+public class PatientProgramCriteriaBuilderTest {
 
     private static final String EQ = "eq";
     private static final String GT = "gt";
@@ -32,7 +32,7 @@ public class PatientProgramQueryBuilderTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private final PatientProgramQueryBuilder builder = new PatientProgramQueryBuilder();
+    private final PatientProgramCriteriaBuilder builder = new PatientProgramCriteriaBuilder();
 
     private final Criteria criteria = mock(Criteria.class);
 
