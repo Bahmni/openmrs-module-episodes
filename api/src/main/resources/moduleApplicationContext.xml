@@ -38,7 +38,7 @@
 			<bean class="org.openmrs.module.episodes.search.handlers.PatientProgramSearchHandler">
 				<constructor-arg name="patientProgramSearchDAO" ref="patientProgramSearchDao"/>
 				<constructor-arg name="validator">
-					<bean class="org.openmrs.module.episodes.search.CriteriaValidator"/>
+					<bean class="org.openmrs.module.episodes.search.criteria.CriteriaValidator"/>
 				</constructor-arg>
 			</bean>
 		</property>

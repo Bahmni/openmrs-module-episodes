@@ -11,7 +11,7 @@ package org.openmrs.module.episodes.web.controller;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.episodes.search.SearchHandler;
-import org.openmrs.module.episodes.search.SearchResponse;
+import org.openmrs.module.episodes.search.criteria.SearchResponse;
 import org.openmrs.module.episodes.search.criteria.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
