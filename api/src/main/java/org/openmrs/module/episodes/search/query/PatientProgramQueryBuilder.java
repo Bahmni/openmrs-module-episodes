@@ -9,57 +9,73 @@
 
 package org.openmrs.module.episodes.search.query;
 
-import org.openmrs.PatientProgram;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 import org.openmrs.module.episodes.search.criteria.Condition;
+import org.openmrs.module.episodes.search.criteria.ConditionOperator;
 import org.openmrs.module.episodes.search.criteria.FieldComparator;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
+import org.openmrs.module.episodes.search.query.PatientProgramFieldRegistry.AliasDescriptor;
 import org.openmrs.module.episodes.search.query.PatientProgramFieldRegistry.FieldDescriptor;
-import org.openmrs.module.episodes.search.query.PatientProgramFieldRegistry.JoinKey;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public class PatientProgramQueryBuilder {
 
     private static final DateTimeFormatter DATE_INPUT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public List<Predicate> buildPredicates(CriteriaBuilder cb, Root<PatientProgram> root,
-            CriteriaQuery<?> cq, List<Predicate> voidedFilters, Condition criteria) {
-        Map<JoinKey, Join<?, ?>> joins = new HashMap<>();
-        List<Predicate> predicates = new ArrayList<>();
-        processCondition(criteria, cb, root, cq, joins, voidedFilters, predicates);
-        return predicates;
-    }
-
-    private void processCondition(Condition condition, CriteriaBuilder cb, Root<PatientProgram> root,
-            CriteriaQuery<?> cq, Map<JoinKey, Join<?, ?>> joins,
-            List<Predicate> voidedFilters, List<Predicate> predicates) {
-        if (condition.isLeaf()) {
-            processLeaf(condition, cb, root, cq, joins, voidedFilters, predicates);
-        } else {
-            for (Condition child : condition.getConditions()) {
-                processCondition(child, cb, root, cq, joins, voidedFilters, predicates);
-            }
+    /**
+     * Translates the Condition tree into Hibernate Criterion and applies it (along with
+     * any required aliases and voided-filters) to the given Criteria.
+     */
+    public void applyCondition(Criteria criteria, Condition condition) {
+        Set<String> createdAliases = new HashSet<>();
+        Criterion criterion = buildCriterion(criteria, condition, createdAliases);
+        if (criterion != null) {
+            criteria.add(criterion);
         }
     }
 
-    private void processLeaf(Condition leaf, CriteriaBuilder cb, Root<PatientProgram> root,
-            CriteriaQuery<?> cq, Map<JoinKey, Join<?, ?>> joins,
-            List<Predicate> voidedFilters, List<Predicate> predicates) {
+    /**
+     * Recursively walks the Condition tree. Leaf nodes become field-level Criterion via the
+     * registry; group nodes combine their children with AND / OR.
+     */
+    private Criterion buildCriterion(Criteria criteria, Condition condition, Set<String> createdAliases) {
+        if (condition.isLeaf()) {
+            return buildLeafCriterion(criteria, condition, createdAliases);
+        }
+
+        List<Criterion> children = new ArrayList<>();
+        for (Condition child : condition.getConditions()) {
+            Criterion c = buildCriterion(criteria, child, createdAliases);
+            if (c != null) {
+                children.add(c);
+            }
+        }
+        if (children.isEmpty()) {
+            return null;
+        }
+        if (children.size() == 1) {
+            return children.get(0);
+        }
+        Criterion[] arr = children.toArray(new Criterion[0]);
+        if (condition.getOperator() == ConditionOperator.OR) {
+            return Restrictions.or(arr);
+        }
+        return Restrictions.and(arr);
+    }
+
+    private Criterion buildLeafCriterion(Criteria criteria, Condition leaf, Set<String> createdAliases) {
         String field = leaf.getField();
         FieldDescriptor descriptor = PatientProgramFieldRegistry.get(field);
         if (descriptor == null) {
@@ -79,37 +95,26 @@ public class PatientProgramQueryBuilder {
                     SearchResponseErrorStatus.BAD_REQUEST);
         }
 
-        for (JoinKey joinKey : descriptor.requiredJoins) {
-            addJoinIfAbsent(joinKey, cb, root, joins, voidedFilters);
-        }
+        ensureAliases(criteria, descriptor.requiredAliases, createdAliases);
 
         Object value = parseValue(descriptor, leaf.getValue(), field);
-        predicates.add(descriptor.predicateFn.build(cb, root, cq, joins, comparator, value));
+        return descriptor.criterionFn.build(comparator, value);
     }
 
-    private void addJoinIfAbsent(JoinKey joinKey, CriteriaBuilder cb, Root<PatientProgram> root,
-            Map<JoinKey, Join<?, ?>> joins, List<Predicate> voidedFilters) {
-        if (joins.containsKey(joinKey)) return;
-
-        Join<?, ?> join;
-        switch (joinKey) {
-            case PS:
-                join = root.join("states", JoinType.INNER);
-                voidedFilters.add(cb.equal(join.get("voided"), false));
-                break;
-            case PI:
-                join = root.join("patient", JoinType.INNER).join("identifiers", JoinType.INNER);
-                voidedFilters.add(cb.equal(join.get("voided"), false));
-                break;
-            case PPA:
-                join = root.join("attributes", JoinType.INNER);
-                voidedFilters.add(cb.equal(join.get("voided"), false));
-                break;
-            default:
-                throw new InvalidSearchCriteriaException(
-                        "Unknown join key: " + joinKey, SearchResponseErrorStatus.BAD_REQUEST);
+    /**
+     * Creates Hibernate aliases on the Criteria, driven entirely by the field descriptor's
+     * alias list. Each alias is created at most once. Voided-filters are added automatically
+     * for aliases that require them.
+     */
+    private void ensureAliases(Criteria criteria, List<AliasDescriptor> aliases, Set<String> createdAliases) {
+        for (AliasDescriptor alias : aliases) {
+            if (createdAliases.add(alias.alias)) {
+                criteria.createAlias(alias.associationPath, alias.alias, alias.joinType);
+                if (alias.filterVoided) {
+                    criteria.add(Restrictions.eq(alias.alias + ".voided", false));
+                }
+            }
         }
-        joins.put(joinKey, join);
     }
 
     private Object parseValue(FieldDescriptor descriptor, String value, String field) {

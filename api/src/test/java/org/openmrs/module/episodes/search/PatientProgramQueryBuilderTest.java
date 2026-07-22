@@ -11,19 +11,15 @@ package org.openmrs.module.episodes.search;
 
 import org.openmrs.module.episodes.search.query.PatientProgramQueryBuilder;
 
+import org.hibernate.Criteria;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.search.constants.SearchFields;
 import org.openmrs.module.episodes.search.criteria.Condition;
 import org.openmrs.module.episodes.search.criteria.ConditionOperator;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.mockito.Mockito.mock;
@@ -38,18 +34,14 @@ public class PatientProgramQueryBuilderTest {
 
     private final PatientProgramQueryBuilder builder = new PatientProgramQueryBuilder();
 
-    private final CriteriaBuilder cb = mock(CriteriaBuilder.class);
-    @SuppressWarnings("unchecked")
-    private final CriteriaQuery<PatientProgram> cq = mock(CriteriaQuery.class);
-    @SuppressWarnings("unchecked")
-    private final Root<PatientProgram> root = mock(Root.class);
+    private final Criteria criteria = mock(Criteria.class);
 
     @Test
     public void shouldThrowForUnknownSearchField() {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("Unknown search field: 'patient.unknownField'");
 
-        builder.buildPredicates(cb, root, cq, new ArrayList<>(), leaf("patient.unknownField", EQ, "value"));
+        builder.applyCondition(criteria, leaf("patient.unknownField", EQ, "value"));
     }
 
     @Test
@@ -57,7 +49,7 @@ public class PatientProgramQueryBuilderTest {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("not supported for field 'program.uuid'");
 
-        builder.buildPredicates(cb, root, cq, new ArrayList<>(), leaf(SearchFields.Program.UUID, GT, "uuid"));
+        builder.applyCondition(criteria, leaf(SearchFields.Program.UUID, GT, "uuid"));
     }
 
     @Test
@@ -65,8 +57,7 @@ public class PatientProgramQueryBuilderTest {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("Unknown comparator");
 
-        builder.buildPredicates(cb, root, cq, new ArrayList<>(),
-                leaf(SearchFields.EpisodeOfCare.START_DATE, null, "2024-01-01"));
+        builder.applyCondition(criteria, leaf(SearchFields.EpisodeOfCare.START_DATE, null, "2024-01-01"));
     }
 
     @Test
@@ -74,8 +65,7 @@ public class PatientProgramQueryBuilderTest {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("Invalid date format");
 
-        builder.buildPredicates(cb, root, cq, new ArrayList<>(),
-                leaf(SearchFields.EpisodeOfCare.START_DATE, GT, "01/01/2024"));
+        builder.applyCondition(criteria, leaf(SearchFields.EpisodeOfCare.START_DATE, GT, "01/01/2024"));
     }
 
     private Condition leaf(String field, String comparator, String value) {
