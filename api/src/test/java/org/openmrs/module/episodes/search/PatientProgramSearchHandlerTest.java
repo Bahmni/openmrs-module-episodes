@@ -7,19 +7,20 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.service.impl;
+package org.openmrs.module.episodes.search;
 
+import org.openmrs.module.episodes.search.handlers.PatientProgramSearchHandler;
+
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.openmrs.module.episodes.dao.EpisodeSearchDAO;
-import org.openmrs.module.episodes.search.BuiltQuery;
+import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.criteria.Condition;
+import org.openmrs.module.episodes.search.CriteriaValidator;
 import org.openmrs.module.episodes.search.criteria.ConditionOperator;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.criteria.SearchRequest;
@@ -27,45 +28,35 @@ import org.openmrs.module.episodes.search.criteria.SearchRequest;
 import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EpisodeSearchServiceImplTest {
+public class PatientProgramSearchHandlerTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     @Mock
-    private EpisodeSearchDAO episodeSearchDAO;
+    private PatientProgramSearchDAO patientProgramSearchDAO;
 
-    @InjectMocks
-    private EpisodeSearchServiceImpl episodeSearchService;
+    private PatientProgramSearchHandler handler;
 
-    @Test
-    public void shouldDelegateToDAOForValidRequest() {
-        when(episodeSearchDAO.search(any(BuiltQuery.class))).thenReturn(Collections.emptyList());
-
-        episodeSearchService.search(validRequest());
-
-        verify(episodeSearchDAO, times(1)).search(any(BuiltQuery.class));
+    @Before
+    public void setUp() {
+        handler = new PatientProgramSearchHandler(patientProgramSearchDAO, new CriteriaValidator());
     }
 
     @Test
-    public void shouldPassBuiltHqlToDAO() {
-        when(episodeSearchDAO.search(any(BuiltQuery.class))).thenReturn(Collections.emptyList());
-        ArgumentCaptor<BuiltQuery> captor = ArgumentCaptor.forClass(BuiltQuery.class);
+    public void shouldDelegateToDAOForValidRequest() {
+        when(patientProgramSearchDAO.search(any(Condition.class))).thenReturn(Collections.emptyList());
 
-        episodeSearchService.search(validRequest());
+        handler.search(validRequest());
 
-        verify(episodeSearchDAO).search(captor.capture());
-        assertThat(captor.getValue().getHql(), notNullValue());
-        assertThat(captor.getValue().getHql(), containsString("e.dateStarted > :param0"));
+        verify(patientProgramSearchDAO, times(1)).search(any(Condition.class));
     }
 
     @Test
@@ -78,38 +69,29 @@ public class EpisodeSearchServiceImplTest {
         criteria.setConditions(Collections.singletonList(leaf("episodeOfCare.startDate", "gt", "2024-01-01")));
 
         SearchRequest request = new SearchRequest();
-        request.setEntity("episodeOfCare");
+        request.setEntity("patientProgram");
         request.setCriteria(criteria);
 
-        episodeSearchService.search(request);
+        handler.search(request);
 
-        verify(episodeSearchDAO, times(0)).search(any());
-    }
-
-    @Test
-    public void shouldThrowBeforeCallingDAOForUnknownField() {
-        thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("Unknown search field");
-
-        SearchRequest request = new SearchRequest();
-        request.setEntity("episodeOfCare");
-        request.setCriteria(leaf("episode.unknownField", "eq", "val"));
-
-        episodeSearchService.search(request);
-
-        verify(episodeSearchDAO, times(0)).search(any());
+        verify(patientProgramSearchDAO, times(0)).search(any());
     }
 
     @Test
     public void shouldReturnEmptyListWhenNoResults() {
-        when(episodeSearchDAO.search(any(BuiltQuery.class))).thenReturn(Collections.emptyList());
+        when(patientProgramSearchDAO.search(any(Condition.class))).thenReturn(Collections.emptyList());
 
-        assertThat(episodeSearchService.search(validRequest()).size(), is(0));
+        assertThat(handler.search(validRequest()).size(), is(0));
+    }
+
+    @Test
+    public void shouldReturnPatientProgramEntity() {
+        assertThat(handler.getEntity(), is("patientProgram"));
     }
 
     private SearchRequest validRequest() {
         SearchRequest request = new SearchRequest();
-        request.setEntity("episodeOfCare");
+        request.setEntity("patientProgram");
         request.setCriteria(leaf("episodeOfCare.startDate", "gt", "2024-01-01"));
         return request;
     }

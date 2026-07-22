@@ -23,17 +23,23 @@
   		    http://www.springframework.org/schema/util
   		    http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="episodeSearchDao" class="org.openmrs.module.episodes.dao.impl.EpisodeSearchDAOImpl">
+	<bean id="patientProgramSearchDao" class="org.openmrs.module.episodes.dao.impl.PatientProgramSearchDAOImpl">
 		<constructor-arg name="sessionFactory" ref="sessionFactory"/>
+		<constructor-arg name="queryBuilder">
+			<bean class="org.openmrs.module.episodes.search.query.PatientProgramQueryBuilder"/>
+		</constructor-arg>
 	</bean>
 
-	<bean id="episodeSearchService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+	<bean id="patientProgramSearchHandler" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
 		<property name="transactionManager">
 			<ref bean="transactionManager"/>
 		</property>
 		<property name="target">
-			<bean class="org.openmrs.module.episodes.service.impl.EpisodeSearchServiceImpl">
-				<constructor-arg name="episodeSearchDAO" ref="episodeSearchDao"/>
+			<bean class="org.openmrs.module.episodes.search.handlers.PatientProgramSearchHandler">
+				<constructor-arg name="patientProgramSearchDAO" ref="patientProgramSearchDao"/>
+				<constructor-arg name="validator">
+					<bean class="org.openmrs.module.episodes.search.CriteriaValidator"/>
+				</constructor-arg>
 			</bean>
 		</property>
 		<property name="preInterceptors">
@@ -41,15 +47,6 @@
 		</property>
 		<property name="transactionAttributeSource">
 			<ref bean="transactionAttributeSource"/>
-		</property>
-	</bean>
-
-	<bean parent="serviceContext">
-		<property name="moduleService">
-			<list merge="true">
-				<value>org.openmrs.module.episodes.service.EpisodeSearchService</value>
-				<ref bean="episodeSearchService"/>
-			</list>
 		</property>
 	</bean>
 
