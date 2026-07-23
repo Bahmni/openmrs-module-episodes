@@ -18,7 +18,7 @@ import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
 import static org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder.ROOT_ALIAS;
-import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.SearchCriteria;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<PatientProgram> search(Condition condition) {
+    public List<PatientProgram> search(SearchCriteria condition) {
         Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PatientProgram.class, ROOT_ALIAS);
         criteria.add(Restrictions.eq(ROOT_ALIAS + ".voided", false));
 

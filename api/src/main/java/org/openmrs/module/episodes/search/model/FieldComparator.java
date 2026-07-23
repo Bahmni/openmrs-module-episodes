@@ -9,18 +9,21 @@
 
 package org.openmrs.module.episodes.search.model;
 
+import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
+import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
+
 public enum FieldComparator {
 
     EQ, GT, LT;
 
-    public static FieldComparator fromString(String s) {
-        if (s == null) return null;
+    public static FieldComparator resolve(String value) {
+        if (value == null) return null;
         try {
-            return FieldComparator.valueOf(s.toUpperCase());
+            return FieldComparator.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException(
-                    "Unknown comparator: '" + s + "'. Supported: eq, gt, lt",
-                    org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus.BAD_REQUEST);
+            throw new InvalidSearchCriteriaException(
+                    "Unknown comparator: '" + value + "'. Supported: eq, gt, lt",
+                    SearchResponseErrorStatus.BAD_REQUEST);
         }
     }
 }

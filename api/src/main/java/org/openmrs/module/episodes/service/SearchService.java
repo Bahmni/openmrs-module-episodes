@@ -10,7 +10,7 @@
 package org.openmrs.module.episodes.service;
 
 import org.openmrs.annotation.Authorized;
-import org.openmrs.module.episodes.search.constants.EpisodeSearchPrivileges;
+import org.openmrs.module.episodes.constants.Privileges;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 
 import java.util.List;
@@ -22,13 +22,13 @@ public interface SearchService {
     String getEntity();
 
     @Authorized(value = {
-            EpisodeSearchPrivileges.GET_EPISODES,
-            EpisodeSearchPrivileges.GET_PROGRAMS,
-            EpisodeSearchPrivileges.GET_PROVIDER_ATTRIBUTE_TYPES,
-            EpisodeSearchPrivileges.GET_PATIENT_PROGRAM_ATTRIBUTE_TYPES,
-            EpisodeSearchPrivileges.GET_PATIENT_PROGRAMS,
-            EpisodeSearchPrivileges.GET_PATIENTS,
-            EpisodeSearchPrivileges.GET_PERSON_ATTRIBUTE_TYPES
+            Privileges.GET_EPISODES,
+            Privileges.GET_PROGRAMS,
+            Privileges.GET_PROVIDER_ATTRIBUTE_TYPES,
+            Privileges.GET_PATIENT_PROGRAM_ATTRIBUTE_TYPES,
+            Privileges.GET_PATIENT_PROGRAMS,
+            Privileges.GET_PATIENTS,
+            Privileges.GET_PERSON_ATTRIBUTE_TYPES
     }, requireAll = true)
     List<Map<String, Object>> search(SearchRequest request);
 }

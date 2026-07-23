@@ -10,6 +10,7 @@
 package org.openmrs.module.episodes.search.model;
 
 import lombok.AccessLevel;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +18,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class Condition {
+public class SearchCriteria {
 
     private String field;
 
@@ -29,10 +30,10 @@ public class Condition {
     @Setter(AccessLevel.NONE)
     private ConditionOperator operator;
 
-    private List<Condition> conditions;
+    private List<SearchCriteria> conditions;
 
     public void setOperator(String operator) {
-        this.operator = ConditionOperator.fromString(operator);
+        this.operator = ConditionOperator.resolve(operator);
     }
 
     public void setOperator(ConditionOperator operator) {
@@ -40,7 +41,7 @@ public class Condition {
     }
 
     public void setComparator(String comparator) {
-        this.comparator = FieldComparator.fromString(comparator);
+        this.comparator = FieldComparator.resolve(comparator);
     }
 
     public boolean isLeaf() {

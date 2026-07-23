@@ -21,7 +21,7 @@ import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.search.constants.SearchFields;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
-import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.SearchCriteria;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.model.FieldComparator;
 
@@ -40,7 +40,7 @@ public class PatientProgramCriteriaBuilder {
 
     private static final DateTimeFormatter ISO_DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
-    public void applyCondition(Criteria criteria, Condition condition) {
+    public void applyCondition(Criteria criteria, SearchCriteria condition) {
         Set<String> createdAliases = new HashSet<>();
         Criterion criterion = buildCriterion(criteria, condition, createdAliases);
         if (criterion != null) {
@@ -48,13 +48,13 @@ public class PatientProgramCriteriaBuilder {
         }
     }
 
-    private Criterion buildCriterion(Criteria criteria, Condition condition, Set<String> createdAliases) {
+    private Criterion buildCriterion(Criteria criteria, SearchCriteria condition, Set<String> createdAliases) {
         if (condition.isLeaf()) {
             return buildLeafCriterion(criteria, condition, createdAliases);
         }
 
         List<Criterion> childCriteria = new ArrayList<>();
-        for (Condition child : condition.getConditions()) {
+        for (SearchCriteria child : condition.getConditions()) {
             Criterion resolved = buildCriterion(criteria, child, createdAliases);
             if (resolved != null) {
                 childCriteria.add(resolved);
@@ -76,7 +76,7 @@ public class PatientProgramCriteriaBuilder {
         return junction;
     }
 
-    private Criterion buildLeafCriterion(Criteria criteria, Condition leaf, Set<String> createdAliases) {
+    private Criterion buildLeafCriterion(Criteria criteria, SearchCriteria leaf, Set<String> createdAliases) {
         String field = leaf.getField();
         FieldComparator comparator = leaf.getComparator();
         String rawValue = leaf.getValue();
@@ -89,65 +89,65 @@ public class PatientProgramCriteriaBuilder {
 
         switch (field) {
             // --- Episode of Care fields (use subqueries) ---
-            case SearchFields.EpisodeOfCare.START_DATE:
+            case SearchFields.EOC_START_DATE:
                 validateDateOnly(field, comparator);
                 return buildEpisodeDateSubquery("e.dateStarted", comparator, parseDate(rawValue));
 
-            case SearchFields.EpisodeOfCare.END_DATE:
+            case SearchFields.EOC_END_DATE:
                 validateDateOnly(field, comparator);
                 return buildEpisodeDateSubquery("e.dateEnded", comparator, parseDate(rawValue));
 
-            case SearchFields.EpisodeOfCare.CARE_MANAGER:
+            case SearchFields.EOC_CARE_MANAGER:
                 validateEqOnly(field, comparator);
                 return buildEpisodeCareManagerSubquery(rawValue);
 
             // --- Program fields (direct on patient_program) ---
-            case SearchFields.Program.UUID:
+            case SearchFields.PROGRAM_UUID:
                 validateEqOnly(field, comparator);
                 joinProgram(criteria, createdAliases);
                 return Restrictions.eq("prog.uuid", rawValue);
 
-            case SearchFields.Program.TYPE:
+            case SearchFields.PROGRAM_TYPE:
                 validateEqOnly(field, comparator);
                 joinProgramConcept(criteria, createdAliases);
                 return Restrictions.eq("progConcept.uuid", rawValue);
 
-            case SearchFields.Program.LOCATION:
+            case SearchFields.PROGRAM_LOCATION:
                 validateEqOnly(field, comparator);
                 joinLocation(criteria, createdAliases);
                 return Restrictions.eq("loc.uuid", rawValue);
 
             // --- Program state fields (need states JOIN) ---
-            case SearchFields.Program.STATUS:
+            case SearchFields.PROGRAM_STATUS:
                 validateEqOnly(field, comparator);
                 joinStateConcept(criteria, createdAliases);
                 return Restrictions.eq("psConcept.uuid", rawValue);
 
-            case SearchFields.Program.STATUS_DATE:
+            case SearchFields.PROGRAM_STATUS_DATE:
                 validateDateOnly(field, comparator);
                 joinStates(criteria, createdAliases);
                 return buildDateRestriction("ps.startDate", comparator, parseDate(rawValue));
 
             // --- Patient identifier fields (need patient + identifiers JOINs) ---
-            case SearchFields.Patient.IDENTIFIER_KIND:
+            case SearchFields.PATIENT_IDENTIFIER_KIND:
                 validateEqOnly(field, comparator);
                 joinIdentifierType(criteria, createdAliases);
                 return Restrictions.or(
                         Restrictions.eq("pit.uuid", rawValue),
                         Restrictions.eq("pit.name", rawValue));
 
-            case SearchFields.Patient.IDENTIFIER_VALUE:
+            case SearchFields.PATIENT_IDENTIFIER_VALUE:
                 validateEqOnly(field, comparator);
                 joinPatientIdentifiers(criteria, createdAliases);
                 return Restrictions.eq("pi.identifier", rawValue);
 
             // --- Program attribute fields (need attributes JOIN) ---
-            case SearchFields.Program.ATTRIBUTE_KIND:
+            case SearchFields.PROGRAM_ATTRIBUTE_KIND:
                 validateEqOnly(field, comparator);
                 joinAttributeType(criteria, createdAliases);
                 return Restrictions.eq("ppat.uuid", rawValue);
 
-            case SearchFields.Program.ATTRIBUTE_VALUE:
+            case SearchFields.PROGRAM_ATTRIBUTE_VALUE:
                 validateEqOnly(field, comparator);
                 joinAttributes(criteria, createdAliases);
                 return Restrictions.eq("ppa.valueReference", rawValue);

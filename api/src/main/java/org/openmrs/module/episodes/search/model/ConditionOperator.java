@@ -9,17 +9,20 @@
 
 package org.openmrs.module.episodes.search.model;
 
+import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
+import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
+
 public enum ConditionOperator {
     AND, OR;
 
-    public static ConditionOperator fromString(String s) {
-        if (s == null) return null;
+    public static ConditionOperator resolve(String value) {
+        if (value == null) return null;
         try {
-            return ConditionOperator.valueOf(s.toUpperCase());
+            return ConditionOperator.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException(
-                    "Unknown operator: '" + s + "'. Supported: AND, OR",
-                    org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus.BAD_REQUEST);
+            throw new InvalidSearchCriteriaException(
+                    "Unknown operator: '" + value + "'. Supported: AND, OR",
+                    SearchResponseErrorStatus.BAD_REQUEST);
         }
     }
 }

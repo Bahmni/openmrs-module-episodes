@@ -55,7 +55,7 @@ public class PatientProgramSearchServiceImpl implements SearchService {
         validator.validateRequest(request);
         List<PatientProgram> patientPrograms = patientProgramSearchDAO.search(request.getCriteria());
         if (patientPrograms.isEmpty()) {
-            log.debug("No patient programs found");
+            log.debug("No patient programs found for the given criteria");
             return new ArrayList<>();
         }
 

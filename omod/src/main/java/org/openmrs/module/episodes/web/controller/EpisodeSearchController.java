@@ -25,7 +25,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,16 +57,24 @@ public class EpisodeSearchController {
             response.put("results", results);
             return ResponseEntity.ok(response);
         } catch (InvalidSearchCriteriaException e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(e.getStatus().getCode()).body(error);
+            return ResponseEntity.status(e.getStatus().getCode())
+                    .body(buildErrorResponse(e.getStatus().getCode(), e.getMessages()));
         } catch (RuntimeException e) {
             EpisodeSearchException searchException =
                     new EpisodeSearchException("Unexpected error during episode search", e);
             log.error(searchException.getMessage(), searchException);
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "An unexpected error occurred while processing the search request");
-            return ResponseEntity.status(searchException.getStatus().getCode()).body(error);
+            return ResponseEntity.status(searchException.getStatus().getCode())
+                    .body(buildErrorResponse(searchException.getStatus().getCode(),
+                            Collections.singletonList("An unexpected error occurred while processing the search request")));
         }
+    }
+
+    private Map<String, Object> buildErrorResponse(int status, List<String> messages) {
+        Map<String, Object> error = new LinkedHashMap<>();
+        error.put("status", status);
+        error.put("messages", messages);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("error", error);
+        return response;
     }
 }
