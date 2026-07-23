@@ -9,18 +9,33 @@
 
 package org.openmrs.module.episodes.search.exceptions;
 
+import java.util.Collections;
+import java.util.List;
+
 public class InvalidSearchCriteriaException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
     private final SearchResponseErrorStatus status;
+    private final List<String> messages;
 
     public InvalidSearchCriteriaException(String message, SearchResponseErrorStatus status) {
         super(message);
         this.status = status;
+        this.messages = Collections.singletonList(message);
+    }
+
+    public InvalidSearchCriteriaException(List<String> messages, SearchResponseErrorStatus status) {
+        super(String.join("; ", messages));
+        this.status = status;
+        this.messages = Collections.unmodifiableList(messages);
     }
 
     public SearchResponseErrorStatus getStatus() {
         return status;
+    }
+
+    public List<String> getMessages() {
+        return messages;
     }
 }

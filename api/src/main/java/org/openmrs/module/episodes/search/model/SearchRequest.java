@@ -9,11 +9,13 @@
 
 package org.openmrs.module.episodes.search.model;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class SearchRequest {
 
     private String entity;
-    private Condition criteria;
+    private SearchCriteria criteria;
 }

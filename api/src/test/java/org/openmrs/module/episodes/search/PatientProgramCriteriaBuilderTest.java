@@ -16,7 +16,7 @@ import org.junit.rules.ExpectedException;
 import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
 import org.openmrs.module.episodes.search.constants.SearchFields;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
-import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.SearchCriteria;
 
 import static org.mockito.Mockito.mock;
 
@@ -45,7 +45,7 @@ public class PatientProgramCriteriaBuilderTest {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("Only 'eq' comparator is supported for field 'program.uuid'");
 
-        builder.applyCondition(criteria, leaf(SearchFields.Program.UUID, GT, "uuid"));
+        builder.applyCondition(criteria, leaf(SearchFields.PROGRAM_UUID, GT, "uuid"));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class PatientProgramCriteriaBuilderTest {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("Missing comparator for field 'episodeOfCare.startDate'");
 
-        builder.applyCondition(criteria, leaf(SearchFields.EpisodeOfCare.START_DATE, null, "2024-01-01"));
+        builder.applyCondition(criteria, leaf(SearchFields.EOC_START_DATE, null, "2024-01-01"));
     }
 
     @Test
@@ -61,15 +61,15 @@ public class PatientProgramCriteriaBuilderTest {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("Invalid date format");
 
-        builder.applyCondition(criteria, leaf(SearchFields.EpisodeOfCare.START_DATE, GT, "01/01/2024"));
+        builder.applyCondition(criteria, leaf(SearchFields.EOC_START_DATE, GT, "01/01/2024"));
     }
 
-    private Condition leaf(String field, String comparator, String value) {
-        Condition c = new Condition();
-        c.setField(field);
-        c.setComparator(comparator);
-        c.setValue(value);
-        return c;
+    private SearchCriteria leaf(String field, String comparator, String value) {
+        SearchCriteria criteria = new SearchCriteria();
+        criteria.setField(field);
+        criteria.setComparator(comparator);
+        criteria.setValue(value);
+        return criteria;
     }
 
 }

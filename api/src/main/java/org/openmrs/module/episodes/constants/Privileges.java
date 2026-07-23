@@ -7,9 +7,9 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.constants;
+package org.openmrs.module.episodes.constants;
 
-public final class EpisodeSearchPrivileges {
+public final class Privileges {
 
     public static final String GET_EPISODES = "Get Episodes";
     public static final String GET_PROGRAMS = "Get Programs";
@@ -19,6 +19,4 @@ public final class EpisodeSearchPrivileges {
     public static final String GET_PATIENTS = "Get Patients";
     public static final String GET_PERSON_ATTRIBUTE_TYPES = "Get Person Attribute Types";
 
-    private EpisodeSearchPrivileges() {
-    }
 }

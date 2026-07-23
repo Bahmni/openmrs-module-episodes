@@ -23,7 +23,7 @@ import org.openmrs.annotation.Authorized;
 import org.openmrs.api.APIAuthenticationException;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.SearchCriteria;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
@@ -124,12 +124,12 @@ public class PatientProgramSearchServiceImplPrivilegeITTest extends BaseModuleCo
     }
 
     private SearchRequest validRequest() {
-        Condition leaf = new Condition();
+        SearchCriteria leaf = new SearchCriteria();
         leaf.setField("episodeOfCare.startDate");
         leaf.setComparator("gt");
         leaf.setValue("2024-01-01");
 
-        Condition criteria = new Condition();
+        SearchCriteria criteria = new SearchCriteria();
         criteria.setOperator(ConditionOperator.AND);
         criteria.setConditions(Collections.singletonList(leaf));
 

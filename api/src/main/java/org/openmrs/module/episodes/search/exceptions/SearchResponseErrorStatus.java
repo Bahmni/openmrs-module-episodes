@@ -9,6 +9,9 @@
 
 package org.openmrs.module.episodes.search.exceptions;
 
+import lombok.Getter;
+
+@Getter
 public enum SearchResponseErrorStatus {
 
     BAD_REQUEST(400),
@@ -20,7 +23,4 @@ public enum SearchResponseErrorStatus {
         this.code = code;
     }
 
-    public int getCode() {
-        return code;
-    }
 }

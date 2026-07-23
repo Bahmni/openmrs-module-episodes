@@ -13,9 +13,6 @@ import org.openmrs.module.episodes.service.SearchService;
 
 import org.junit.Test;
 import org.openmrs.Location;
-import org.openmrs.Patient;
-import org.openmrs.PatientIdentifier;
-import org.openmrs.PatientIdentifierType;
 import org.openmrs.PatientProgram;
 import org.openmrs.Person;
 import org.openmrs.PersonName;
@@ -27,7 +24,7 @@ import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.search.constants.SearchFields;
-import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.SearchCriteria;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
@@ -79,7 +76,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         saveEpisodeWith(pp);
 
         List<Map<String, Object>> results = searchService.search(
-                requestWith(leaf(SearchFields.Program.UUID, EQ, pp.getProgram().getUuid()))
+                requestWith(leaf(SearchFields.PROGRAM_UUID, EQ, pp.getProgram().getUuid()))
         );
 
         assertThat(results.size(), is(1));
@@ -94,9 +91,9 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         episode.setDateStarted(date(2024, 6, 15));
         episodeService.save(episode);
 
-        Condition range = group(
-                leaf(SearchFields.EpisodeOfCare.START_DATE, GT, DATE_FROM),
-                leaf(SearchFields.EpisodeOfCare.START_DATE, LT, DATE_TO)
+        SearchCriteria range = group(
+                leaf(SearchFields.EOC_START_DATE, GT, DATE_FROM),
+                leaf(SearchFields.EOC_START_DATE, LT, DATE_TO)
         );
 
         List<Map<String, Object>> results = searchService.search(requestWith(range));
@@ -111,7 +108,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         saveEpisodeWith(pp);
 
         List<Map<String, Object>> results = searchService.search(
-                requestWith(leaf(SearchFields.Program.UUID, EQ, pp.getProgram().getUuid()))
+                requestWith(leaf(SearchFields.PROGRAM_UUID, EQ, pp.getProgram().getUuid()))
         );
 
         Map<String, Object> result = results.get(0);
@@ -138,7 +135,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         episodeService.save(episode);
 
         List<Map<String, Object>> results = searchService.search(
-                requestWith(leaf(SearchFields.EpisodeOfCare.CARE_MANAGER, EQ, provider.getUuid()))
+                requestWith(leaf(SearchFields.EOC_CARE_MANAGER, EQ, provider.getUuid()))
         );
 
         assertThat(results.size(), is(0));
@@ -153,7 +150,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         saveEpisodeWith(pp);
 
         List<Map<String, Object>> results = searchService.search(
-                requestWith(leaf(SearchFields.Program.LOCATION, EQ, location.getUuid()))
+                requestWith(leaf(SearchFields.PROGRAM_LOCATION, EQ, location.getUuid()))
         );
 
         assertThat(results.size(), is(1));
@@ -163,7 +160,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
     @Test
     public void shouldReturnEmptyListWhenNoCriteriaMatch() {
         List<Map<String, Object>> results = searchService.search(
-                requestWith(leaf(SearchFields.Program.UUID, EQ, "non-existent-uuid"))
+                requestWith(leaf(SearchFields.PROGRAM_UUID, EQ, "non-existent-uuid"))
         );
 
         assertThat(results.size(), is(0));
@@ -174,11 +171,11 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         PatientProgram pp = programWorkflowService.getPatientProgram(1);
         saveEpisodeWith(pp);
 
-        Condition criteria = new Condition();
+        SearchCriteria criteria = new SearchCriteria();
         criteria.setOperator(ConditionOperator.OR);
         criteria.setConditions(Arrays.asList(
-                leaf(SearchFields.Program.UUID, EQ, pp.getProgram().getUuid()),
-                leaf(SearchFields.Program.UUID, EQ, "non-existent-uuid")
+                leaf(SearchFields.PROGRAM_UUID, EQ, pp.getProgram().getUuid()),
+                leaf(SearchFields.PROGRAM_UUID, EQ, "non-existent-uuid")
         ));
 
         List<Map<String, Object>> results = searchService.search(requestWith(criteria));
@@ -193,12 +190,12 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
 
     @Test(expected = InvalidSearchCriteriaException.class)
     public void shouldThrowExceptionForUnsupportedComparator() {
-        searchService.search(requestWith(leaf(SearchFields.Program.UUID, GT, "uuid")));
+        searchService.search(requestWith(leaf(SearchFields.PROGRAM_UUID, GT, "uuid")));
     }
 
     @Test(expected = InvalidSearchCriteriaException.class)
     public void shouldThrowExceptionForInvalidDateFormat() {
-        searchService.search(requestWith(leaf(SearchFields.EpisodeOfCare.START_DATE, GT, "01/01/2024")));
+        searchService.search(requestWith(leaf(SearchFields.EOC_START_DATE, GT, "01/01/2024")));
     }
 
     private Episode saveEpisodeWith(PatientProgram pp) {
@@ -229,25 +226,25 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         return cal.getTime();
     }
 
-    private SearchRequest requestWith(Condition criteria) {
+    private SearchRequest requestWith(SearchCriteria criteria) {
         SearchRequest request = new SearchRequest();
         request.setEntity("patientProgram");
         request.setCriteria(criteria);
         return request;
     }
 
-    private Condition leaf(String field, String comparator, String value) {
-        Condition c = new Condition();
-        c.setField(field);
-        c.setComparator(comparator);
-        c.setValue(value);
-        return c;
+    private SearchCriteria leaf(String field, String comparator, String value) {
+        SearchCriteria criteria = new SearchCriteria();
+        criteria.setField(field);
+        criteria.setComparator(comparator);
+        criteria.setValue(value);
+        return criteria;
     }
 
-    private Condition group(Condition... children) {
-        Condition c = new Condition();
-        c.setOperator(ConditionOperator.AND);
-        c.setConditions(Arrays.asList(children));
-        return c;
+    private SearchCriteria group(SearchCriteria... children) {
+        SearchCriteria criteria = new SearchCriteria();
+        criteria.setOperator(ConditionOperator.AND);
+        criteria.setConditions(Arrays.asList(children));
+        return criteria;
     }
 }

@@ -20,7 +20,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
-import org.openmrs.module.episodes.search.model.Condition;
+import org.openmrs.module.episodes.search.model.SearchCriteria;
 import org.openmrs.module.episodes.search.validation.CriteriaValidator;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
@@ -53,18 +53,18 @@ public class PatientProgramSearchServiceImplTest {
 
     @Test
     public void shouldDelegateToDAOForValidRequest() {
-        when(patientProgramSearchDAO.search(any(Condition.class))).thenReturn(Collections.emptyList());
+        when(patientProgramSearchDAO.search(any(SearchCriteria.class))).thenReturn(Collections.emptyList());
 
         searchService.search(validRequest());
 
-        verify(patientProgramSearchDAO, times(1)).search(any(Condition.class));
+        verify(patientProgramSearchDAO, times(1)).search(any(SearchCriteria.class));
     }
 
     @Test
     public void shouldDelegateToDAOWhenOrOperatorUsed() {
-        when(patientProgramSearchDAO.search(any(Condition.class))).thenReturn(Collections.emptyList());
+        when(patientProgramSearchDAO.search(any(SearchCriteria.class))).thenReturn(Collections.emptyList());
 
-        Condition criteria = new Condition();
+        SearchCriteria criteria = new SearchCriteria();
         criteria.setOperator(ConditionOperator.OR);
         criteria.setConditions(Collections.singletonList(leaf("episodeOfCare.startDate", "gt", "2024-01-01")));
 
@@ -74,12 +74,12 @@ public class PatientProgramSearchServiceImplTest {
 
         searchService.search(request);
 
-        verify(patientProgramSearchDAO, times(1)).search(any(Condition.class));
+        verify(patientProgramSearchDAO, times(1)).search(any(SearchCriteria.class));
     }
 
     @Test
     public void shouldReturnEmptyListWhenNoResults() {
-        when(patientProgramSearchDAO.search(any(Condition.class))).thenReturn(Collections.emptyList());
+        when(patientProgramSearchDAO.search(any(SearchCriteria.class))).thenReturn(Collections.emptyList());
 
         assertThat(searchService.search(validRequest()).size(), is(0));
     }
@@ -96,11 +96,11 @@ public class PatientProgramSearchServiceImplTest {
         return request;
     }
 
-    private Condition leaf(String field, String comparator, String value) {
-        Condition c = new Condition();
-        c.setField(field);
-        c.setComparator(comparator);
-        c.setValue(value);
-        return c;
+    private SearchCriteria leaf(String field, String comparator, String value) {
+        SearchCriteria criteria = new SearchCriteria();
+        criteria.setField(field);
+        criteria.setComparator(comparator);
+        criteria.setValue(value);
+        return criteria;
     }
 }
