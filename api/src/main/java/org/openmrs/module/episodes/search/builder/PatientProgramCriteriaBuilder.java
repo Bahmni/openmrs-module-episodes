@@ -25,9 +25,7 @@ import org.openmrs.module.episodes.search.model.Condition;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.model.FieldComparator;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -40,7 +38,6 @@ public class PatientProgramCriteriaBuilder {
 
     public static final String ROOT_ALIAS = "pp";
 
-    private static final DateTimeFormatter DATE_ONLY_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter ISO_DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     public void applyCondition(Criteria criteria, Condition condition) {
@@ -269,15 +266,11 @@ public class PatientProgramCriteriaBuilder {
 
     private Date parseDate(String value) {
         try {
-            if (value.contains("T")) {
-                OffsetDateTime odt = OffsetDateTime.parse(value, ISO_DATETIME_FORMAT);
-                return Date.from(odt.toInstant());
-            }
-            LocalDate localDate = LocalDate.parse(value, DATE_ONLY_FORMAT);
-            return Date.from(localDate.atStartOfDay(ZoneOffset.UTC).toInstant());
+            OffsetDateTime odt = OffsetDateTime.parse(value, ISO_DATETIME_FORMAT);
+            return Date.from(odt.toInstant());
         } catch (DateTimeParseException e) {
             throw new InvalidSearchCriteriaException(
-                    "Invalid date format: '" + value + "'. Expected yyyy-MM-dd or yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+                    "Invalid date format: '" + value + "'. Expected yyyy-MM-dd'T'HH:mm:ss.SSSZ (e.g. 2024-01-01T10:30:00.000+0530)",
                     SearchResponseErrorStatus.BAD_REQUEST);
         }
     }

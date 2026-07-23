@@ -49,8 +49,8 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
     private static final String EQ = "eq";
     private static final String GT = "gt";
     private static final String LT = "lt";
-    private static final String DATE_FROM = "2024-01-01";
-    private static final String DATE_TO = "2024-12-31";
+    private static final String DATE_FROM = "2024-01-01T00:00:00.000+0000";
+    private static final String DATE_TO = "2024-12-31T23:59:59.000+0000";
 
     @Autowired
     private SearchService searchService;
