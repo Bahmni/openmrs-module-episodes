@@ -26,6 +26,7 @@ import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.search.constants.SearchFields;
 import org.openmrs.module.episodes.search.model.SearchCriteria;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
+import org.openmrs.module.episodes.search.model.FieldComparator;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.service.EpisodeService;
@@ -40,12 +41,12 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.openmrs.module.episodes.search.model.FieldComparator.EQ;
+import static org.openmrs.module.episodes.search.model.FieldComparator.GT;
+import static org.openmrs.module.episodes.search.model.FieldComparator.LT;
 
 public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSensitiveTest {
 
-    private static final String EQ = "eq";
-    private static final String GT = "gt";
-    private static final String LT = "lt";
     private static final String DATE_FROM = "2024-01-01T00:00:00.000+0000";
     private static final String DATE_TO = "2024-12-31T23:59:59.000+0000";
 
@@ -98,7 +99,8 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
 
         List<Map<String, Object>> results = searchService.search(requestWith(range));
 
-        assertThat(results.size(), is(0));
+        assertThat(results.size(), is(1));
+        assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
     }
 
     @SuppressWarnings("unchecked")
@@ -138,7 +140,8 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
                 requestWith(leaf(SearchFields.EOC_CARE_MANAGER, EQ, provider.getUuid()))
         );
 
-        assertThat(results.size(), is(0));
+        assertThat(results.size(), is(1));
+        assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
     }
 
     @Test
@@ -198,12 +201,11 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         searchService.search(requestWith(leaf(SearchFields.EOC_START_DATE, GT, "01/01/2024")));
     }
 
-    private Episode saveEpisodeWith(PatientProgram pp) {
+    private void saveEpisodeWith(PatientProgram pp) {
         Episode episode = new Episode();
         episode.addPatientProgram(pp);
         episode.setPatient(pp.getPatient());
         episodeService.save(episode);
-        return episode;
     }
 
     private Provider createProvider(String name) {
@@ -233,7 +235,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         return request;
     }
 
-    private SearchCriteria leaf(String field, String comparator, String value) {
+    private SearchCriteria leaf(String field, FieldComparator comparator, String value) {
         SearchCriteria criteria = new SearchCriteria();
         criteria.setField(field);
         criteria.setComparator(comparator);
