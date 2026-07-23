@@ -9,9 +9,12 @@
 
 package org.openmrs.module.episodes.search.exceptions;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.List;
 
+@Getter
 public class InvalidSearchCriteriaException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
@@ -31,11 +34,4 @@ public class InvalidSearchCriteriaException extends RuntimeException {
         this.messages = Collections.unmodifiableList(messages);
     }
 
-    public SearchResponseErrorStatus getStatus() {
-        return status;
-    }
-
-    public List<String> getMessages() {
-        return messages;
-    }
 }

@@ -13,23 +13,22 @@ import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
-import org.openmrs.PatientProgram;
+import org.hibernate.sql.JoinType;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
-import static org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder.ROOT_ALIAS;
 import org.openmrs.module.episodes.search.model.SearchCriteria;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
+import static org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder.ROOT_ALIAS;
+import static org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder.PATIENT_PROGRAM_ALIAS;
+import static org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder.PATIENT_ALIAS;
 
-    private static final Logger log = LoggerFactory.getLogger(PatientProgramSearchDAOImpl.class);
+public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
 
     private final SessionFactory sessionFactory;
     private final PatientProgramCriteriaBuilder criteriaBuilder;
@@ -42,36 +41,22 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<PatientProgram> search(SearchCriteria condition) {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(PatientProgram.class, ROOT_ALIAS);
+    public List<Episode> search(SearchCriteria searchCriteria) {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Episode.class, ROOT_ALIAS);
         criteria.add(Restrictions.eq(ROOT_ALIAS + ".voided", false));
 
-        // Eagerly fetch associations used by the handler's toMap() to avoid N+1 queries
-        criteria.setFetchMode("patient", FetchMode.JOIN);
-        criteria.setFetchMode("program", FetchMode.JOIN);
-        criteria.setFetchMode("location", FetchMode.JOIN);
+        criteria.createAlias(ROOT_ALIAS + ".patientPrograms", PATIENT_PROGRAM_ALIAS, JoinType.INNER_JOIN);
+        criteria.add(Restrictions.eq(PATIENT_PROGRAM_ALIAS + ".voided", false));
 
-        criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
-        criteriaBuilder.applyCondition(criteria, condition);
-        return criteria.list();
-    }
+        criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".patient", PATIENT_ALIAS, JoinType.INNER_JOIN);
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<Episode> getEpisodesForPatientProgramIds(Set<Integer> patientProgramIds) {
-        if (patientProgramIds.isEmpty()) {
-            return Collections.emptyList();
-        }
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Episode.class, "ep");
-        criteria.createAlias("ep.patientPrograms", "epp");
-        criteria.add(Restrictions.eq("ep.voided", false));
-        criteria.add(Restrictions.in("epp.patientProgramId", patientProgramIds));
-
-        // Eagerly fetch careManager used by the handler's toEpisodeMap()
         criteria.setFetchMode("careManager", FetchMode.JOIN);
         criteria.setFetchMode("patientPrograms", FetchMode.JOIN);
 
+        Set<String> preCreatedAliases = new HashSet<>(Arrays.asList(PATIENT_ALIAS));
+
         criteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+        criteriaBuilder.applyCondition(criteria, searchCriteria, preCreatedAliases);
         return criteria.list();
     }
 }

@@ -20,11 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class PatientProgramSearchServiceImpl implements SearchService {
 
@@ -53,36 +50,22 @@ public class PatientProgramSearchServiceImpl implements SearchService {
     public List<Map<String, Object>> search(SearchRequest request) {
         log.debug("Searching patient programs for entity '{}'", request.getEntity());
         validator.validateRequest(request);
-        List<PatientProgram> patientPrograms = patientProgramSearchDAO.search(request.getCriteria());
-        if (patientPrograms.isEmpty()) {
-            log.debug("No patient programs found for the given criteria");
+
+        List<Episode> episodes = patientProgramSearchDAO.search(request.getCriteria());
+        if (episodes.isEmpty()) {
+            log.debug("No episodes found for the given criteria");
             return new ArrayList<>();
         }
 
-        Set<Integer> patientProgramIds = new HashSet<>();
-        for (PatientProgram patientProgram : patientPrograms) {
-            patientProgramIds.add(patientProgram.getPatientProgramId());
-        }
-        Map<Integer, Map<String, Object>> episodesByPatientProgramId = buildEpisodeByPatientProgramId(patientProgramIds);
-
         List<Map<String, Object>> results = new ArrayList<>();
-        for (PatientProgram patientProgram : patientPrograms) {
-            results.add(responseBuilder.mapPatientProgram(patientProgram, episodesByPatientProgramId.get(patientProgram.getPatientProgramId())));
-        }
-        log.debug("Returning {} patient program results", results.size());
-        return results;
-    }
-
-    private Map<Integer, Map<String, Object>> buildEpisodeByPatientProgramId(Set<Integer> patientProgramIds) {
-        Map<Integer, Map<String, Object>> episodesByPatientProgramId = new HashMap<>();
-        for (Episode episode : patientProgramSearchDAO.getEpisodesForPatientProgramIds(patientProgramIds)) {
+        for (Episode episode : episodes) {
             Map<String, Object> episodeMap = responseBuilder.mapEpisode(episode);
             for (PatientProgram patientProgram : episode.getPatientPrograms()) {
-                if (patientProgramIds.contains(patientProgram.getPatientProgramId())) {
-                    episodesByPatientProgramId.put(patientProgram.getPatientProgramId(), episodeMap);
-                }
+                results.add(responseBuilder.mapPatientProgram(patientProgram, episodeMap));
             }
         }
-        return episodesByPatientProgramId;
+
+        log.debug("Returning {} patient program results", results.size());
+        return results;
     }
 }

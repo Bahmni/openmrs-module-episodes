@@ -11,19 +11,15 @@ package org.openmrs.module.episodes.search.builder;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Junction;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
-import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.search.constants.SearchFields;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
-import org.openmrs.module.episodes.search.model.SearchCriteria;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.model.FieldComparator;
+import org.openmrs.module.episodes.search.model.SearchCriteria;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,12 +32,22 @@ import java.util.Set;
 
 public class PatientProgramCriteriaBuilder {
 
-    public static final String ROOT_ALIAS = "pp";
+    /** Root entity alias: Episode */
+    public static final String ROOT_ALIAS = "ep";
 
-    private static final DateTimeFormatter ISO_DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    public static final String PATIENT_PROGRAM_ALIAS = "pp";
+
+    public static final String PATIENT_ALIAS = "pat";
+
+    private static final DateTimeFormatter ISO_DATETIME_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     public void applyCondition(Criteria criteria, SearchCriteria condition) {
-        Set<String> createdAliases = new HashSet<>();
+        applyCondition(criteria, condition, new HashSet<>());
+    }
+
+    public void applyCondition(Criteria criteria, SearchCriteria condition, Set<String> preCreatedAliases) {
+        Set<String> createdAliases = new HashSet<>(preCreatedAliases);
         Criterion criterion = buildCriterion(criteria, condition, createdAliases);
         if (criterion != null) {
             criteria.add(criterion);
@@ -70,8 +76,8 @@ public class PatientProgramCriteriaBuilder {
         Junction junction = (condition.getOperator() == ConditionOperator.OR)
                 ? Restrictions.disjunction()
                 : Restrictions.conjunction();
-        for (Criterion c : childCriteria) {
-            junction.add(c);
+        for (Criterion criterion : childCriteria) {
+            junction.add(criterion);
         }
         return junction;
     }
@@ -88,20 +94,21 @@ public class PatientProgramCriteriaBuilder {
         }
 
         switch (field) {
-            // --- Episode of Care fields (use subqueries) ---
+            // --- Episode of Care fields (direct on root Episode entity) ---
             case SearchFields.EOC_START_DATE:
                 validateDateOnly(field, comparator);
-                return buildEpisodeDateSubquery("e.dateStarted", comparator, parseDate(rawValue));
+                return buildDateRestriction(ROOT_ALIAS + ".dateStarted", comparator, parseDate(rawValue));
 
             case SearchFields.EOC_END_DATE:
                 validateDateOnly(field, comparator);
-                return buildEpisodeDateSubquery("e.dateEnded", comparator, parseDate(rawValue));
+                return buildDateRestriction(ROOT_ALIAS + ".dateEnded", comparator, parseDate(rawValue));
 
             case SearchFields.EOC_CARE_MANAGER:
                 validateEqOnly(field, comparator);
-                return buildEpisodeCareManagerSubquery(rawValue);
+                joinCareManager(criteria, createdAliases);
+                return Restrictions.eq("cm.uuid", rawValue);
 
-            // --- Program fields (direct on patient_program) ---
+            // --- Program fields (via enrollment alias) ---
             case SearchFields.PROGRAM_UUID:
                 validateEqOnly(field, comparator);
                 joinProgram(criteria, createdAliases);
@@ -117,7 +124,7 @@ public class PatientProgramCriteriaBuilder {
                 joinLocation(criteria, createdAliases);
                 return Restrictions.eq("loc.uuid", rawValue);
 
-            // --- Program state fields (need states JOIN) ---
+            // --- Program state fields ---
             case SearchFields.PROGRAM_STATUS:
                 validateEqOnly(field, comparator);
                 joinStateConcept(criteria, createdAliases);
@@ -128,7 +135,7 @@ public class PatientProgramCriteriaBuilder {
                 joinStates(criteria, createdAliases);
                 return buildDateRestriction("ps.startDate", comparator, parseDate(rawValue));
 
-            // --- Patient identifier fields (need patient + identifiers JOINs) ---
+            // --- Patient identifier fields ---
             case SearchFields.PATIENT_IDENTIFIER_KIND:
                 validateEqOnly(field, comparator);
                 joinIdentifierType(criteria, createdAliases);
@@ -141,7 +148,7 @@ public class PatientProgramCriteriaBuilder {
                 joinPatientIdentifiers(criteria, createdAliases);
                 return Restrictions.eq("pi.identifier", rawValue);
 
-            // --- Program attribute fields (need attributes JOIN) ---
+            // --- Program attribute fields ---
             case SearchFields.PROGRAM_ATTRIBUTE_KIND:
                 validateEqOnly(field, comparator);
                 joinAttributeType(criteria, createdAliases);
@@ -160,26 +167,15 @@ public class PatientProgramCriteriaBuilder {
 
     // ---- Join helpers (each alias created at most once) ----
 
-    private void joinStates(Criteria criteria, Set<String> created) {
-        if (created.add("ps")) {
-            criteria.createAlias(ROOT_ALIAS + ".states", "ps", JoinType.INNER_JOIN);
-            criteria.add(Restrictions.eq("ps.voided", false));
-        }
-    }
-
-    private void joinPatientIdentifiers(Criteria criteria, Set<String> created) {
-        if (created.add("pat")) {
-            criteria.createAlias(ROOT_ALIAS + ".patient", "pat", JoinType.INNER_JOIN);
-        }
-        if (created.add("pi")) {
-            criteria.createAlias("pat.identifiers", "pi", JoinType.INNER_JOIN);
-            criteria.add(Restrictions.eq("pi.voided", false));
+    private void joinCareManager(Criteria criteria, Set<String> created) {
+        if (created.add("cm")) {
+            criteria.createAlias(ROOT_ALIAS + ".careManager", "cm", JoinType.INNER_JOIN);
         }
     }
 
     private void joinProgram(Criteria criteria, Set<String> created) {
         if (created.add("prog")) {
-            criteria.createAlias(ROOT_ALIAS + ".program", "prog", JoinType.INNER_JOIN);
+            criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".program", "prog", JoinType.INNER_JOIN);
         }
     }
 
@@ -192,7 +188,14 @@ public class PatientProgramCriteriaBuilder {
 
     private void joinLocation(Criteria criteria, Set<String> created) {
         if (created.add("loc")) {
-            criteria.createAlias(ROOT_ALIAS + ".location", "loc", JoinType.INNER_JOIN);
+            criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".location", "loc", JoinType.INNER_JOIN);
+        }
+    }
+
+    private void joinStates(Criteria criteria, Set<String> created) {
+        if (created.add("ps")) {
+            criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".states", "ps", JoinType.INNER_JOIN);
+            criteria.add(Restrictions.eq("ps.voided", false));
         }
     }
 
@@ -210,6 +213,16 @@ public class PatientProgramCriteriaBuilder {
         }
     }
 
+    private void joinPatientIdentifiers(Criteria criteria, Set<String> created) {
+        if (created.add("pat")) {
+            criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".patient", "pat", JoinType.INNER_JOIN);
+        }
+        if (created.add("pi")) {
+            criteria.createAlias("pat.identifiers", "pi", JoinType.INNER_JOIN);
+            criteria.add(Restrictions.eq("pi.voided", false));
+        }
+    }
+
     private void joinIdentifierType(Criteria criteria, Set<String> created) {
         joinPatientIdentifiers(criteria, created);
         if (created.add("pit")) {
@@ -219,7 +232,7 @@ public class PatientProgramCriteriaBuilder {
 
     private void joinAttributes(Criteria criteria, Set<String> created) {
         if (created.add("ppa")) {
-            criteria.createAlias(ROOT_ALIAS + ".attributes", "ppa", JoinType.INNER_JOIN);
+            criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".attributes", "ppa", JoinType.INNER_JOIN);
             criteria.add(Restrictions.eq("ppa.voided", false));
         }
     }
@@ -229,29 +242,6 @@ public class PatientProgramCriteriaBuilder {
         if (created.add("ppat")) {
             criteria.createAlias("ppa.attributeType", "ppat", JoinType.INNER_JOIN);
         }
-    }
-
-    // ---- Episode subqueries ----
-
-    private Criterion buildEpisodeDateSubquery(String dateProperty, FieldComparator comparator, Date value) {
-        DetachedCriteria subquery = DetachedCriteria.forClass(Episode.class, "e")
-                .createAlias("e.patientPrograms", "epp")
-                .add(Restrictions.eqProperty("epp.patientProgramId", "pp.patientProgramId"))
-                .add(Restrictions.eq("e.voided", false))
-                .add(buildDateRestriction(dateProperty, comparator, value))
-                .setProjection(Projections.id());
-        return Subqueries.exists(subquery);
-    }
-
-    private Criterion buildEpisodeCareManagerSubquery(String careManagerUuid) {
-        DetachedCriteria subquery = DetachedCriteria.forClass(Episode.class, "e")
-                .createAlias("e.patientPrograms", "epp")
-                .createAlias("e.careManager", "ecm")
-                .add(Restrictions.eqProperty("epp.patientProgramId", "pp.patientProgramId"))
-                .add(Restrictions.eq("e.voided", false))
-                .add(Restrictions.eq("ecm.uuid", careManagerUuid))
-                .setProjection(Projections.id());
-        return Subqueries.exists(subquery);
     }
 
     // ---- Value parsing and comparator validation ----

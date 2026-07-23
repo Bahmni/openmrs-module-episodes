@@ -44,6 +44,10 @@ public class SearchCriteria {
         this.comparator = FieldComparator.resolve(comparator);
     }
 
+    public void setComparator(FieldComparator comparator) {
+        this.comparator = comparator;
+    }
+
     public boolean isLeaf() {
         return field != null && operator == null;
     }
