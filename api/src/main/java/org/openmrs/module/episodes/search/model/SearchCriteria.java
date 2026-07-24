@@ -49,10 +49,10 @@ public class SearchCriteria {
     }
 
     public boolean isLeaf() {
-        return field != null && operator == null;
+        return field != null;
     }
 
     public boolean isGroup() {
-        return operator != null && field == null;
+        return conditions != null && !conditions.isEmpty() && field == null;
     }
 }

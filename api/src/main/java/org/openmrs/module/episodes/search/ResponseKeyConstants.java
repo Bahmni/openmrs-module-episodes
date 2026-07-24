@@ -7,7 +7,7 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.constants;
+package org.openmrs.module.episodes.search;
 
 public final class ResponseKeyConstants {
 

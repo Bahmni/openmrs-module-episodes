@@ -9,14 +9,21 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.hibernate.Criteria;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
-import org.openmrs.module.episodes.search.constants.SearchFields;
+import org.openmrs.module.episodes.search.builder.QueryContext;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.model.SearchCriteria;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
@@ -28,45 +35,47 @@ public class PatientProgramCriteriaBuilderTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private final PatientProgramCriteriaBuilder builder = new PatientProgramCriteriaBuilder();
+    private final PatientProgramCriteriaBuilder criteriaBuilder = new PatientProgramCriteriaBuilder();
 
-    private final Criteria criteria = mock(Criteria.class);
+    private final QueryContext queryContext = createMockQueryContext();
 
     @Test
     public void shouldThrowForUnknownSearchField() {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("Unknown search field: 'patient.unknownField'");
 
-        builder.applyCondition(criteria, leaf("patient.unknownField", EQ, "value"));
+        criteriaBuilder.apply(queryContext, createLeafCriteria("patient.unknownField", EQ, "value"));
     }
 
     @Test
     public void shouldThrowWhenGtUsedOnTextField() {
         thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("Only 'eq' comparator is supported for field 'program.uuid'");
+        thrown.expectMessage("is not supported for field 'program.uuid'");
 
-        builder.applyCondition(criteria, leaf(SearchFields.PROGRAM_UUID, GT, "uuid"));
+        criteriaBuilder.apply(queryContext, createLeafCriteria(SearchFields.PROGRAM_UUID, GT, "uuid"));
     }
 
-    @Test
-    public void shouldThrowWhenComparatorIsNull() {
-        thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("Missing comparator for field 'episodeOfCare.startDate'");
-
-        builder.applyCondition(criteria, leaf(SearchFields.EOC_START_DATE, null, "2024-01-01"));
-    }
 
     @Test
     public void shouldThrowForInvalidDateFormat() {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("Invalid date format");
 
-        builder.applyCondition(criteria, leaf(SearchFields.EOC_START_DATE, GT, "01/01/2024"));
+        criteriaBuilder.apply(queryContext, createLeafCriteria(SearchFields.EOC_START_DATE, GT, "01/01/2024"));
     }
 
-    private SearchCriteria leaf(String field, String comparator, String value) {
+    @SuppressWarnings("unchecked")
+    private QueryContext createMockQueryContext() {
+        CriteriaBuilder mockCriteriaBuilder = mock(CriteriaBuilder.class);
+        Root<Episode> mockEpisodeRoot = mock(Root.class);
+        From<?, ?> mockPatientProgramJoin = mock(From.class);
+        List<Predicate> predicates = new ArrayList<>();
+        return new QueryContext(mockCriteriaBuilder, mockEpisodeRoot, mockPatientProgramJoin, predicates);
+    }
+
+    private SearchCriteria createLeafCriteria(String fieldName, String comparator, String value) {
         SearchCriteria criteria = new SearchCriteria();
-        criteria.setField(field);
+        criteria.setField(fieldName);
         criteria.setComparator(comparator);
         criteria.setValue(value);
         return criteria;

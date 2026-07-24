@@ -9,274 +9,186 @@
 
 package org.openmrs.module.episodes.search.builder;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Junction;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
-import org.openmrs.module.episodes.search.constants.SearchFields;
+import org.openmrs.module.episodes.search.SearchFields;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.model.FieldComparator;
+import org.openmrs.module.episodes.search.model.FieldType;
 import org.openmrs.module.episodes.search.model.SearchCriteria;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.function.Function;
 
 public class PatientProgramCriteriaBuilder {
-
-    /** Root entity alias: Episode */
-    public static final String ROOT_ALIAS = "ep";
-
-    public static final String PATIENT_PROGRAM_ALIAS = "pp";
-
-    public static final String PATIENT_ALIAS = "pat";
 
     private static final DateTimeFormatter ISO_DATETIME_FORMAT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
-    public void applyCondition(Criteria criteria, SearchCriteria condition) {
-        applyCondition(criteria, condition, new HashSet<>());
+    private final PatientProgramJoinResolver joinResolver = new PatientProgramJoinResolver();
+    private final Map<String, FieldPredicateFactory> fieldRegistry;
+
+    public PatientProgramCriteriaBuilder() {
+        this.fieldRegistry = Collections.unmodifiableMap(buildFieldRegistry());
     }
 
-    public void applyCondition(Criteria criteria, SearchCriteria condition, Set<String> preCreatedAliases) {
-        Set<String> createdAliases = new HashSet<>(preCreatedAliases);
-        Criterion criterion = buildCriterion(criteria, condition, createdAliases);
-        if (criterion != null) {
-            criteria.add(criterion);
+    public void apply(QueryContext queryContext, SearchCriteria criteria) {
+        Predicate predicate = buildCriterion(queryContext, criteria);
+        if (predicate != null) {
+            queryContext.predicates.add(predicate);
         }
     }
 
-    private Criterion buildCriterion(Criteria criteria, SearchCriteria condition, Set<String> createdAliases) {
-        if (condition.isLeaf()) {
-            return buildLeafCriterion(criteria, condition, createdAliases);
-        }
+    private Map<String, FieldPredicateFactory> buildFieldRegistry() {
+        Map<String, FieldPredicateFactory> registry = new HashMap<>();
 
-        List<Criterion> childCriteria = new ArrayList<>();
-        for (SearchCriteria child : condition.getConditions()) {
-            Criterion resolved = buildCriterion(criteria, child, createdAliases);
-            if (resolved != null) {
-                childCriteria.add(resolved);
-            }
-        }
-        if (childCriteria.isEmpty()) {
+        registry.put(SearchFields.EOC_START_DATE,
+                createFieldFactory(queryContext -> queryContext.episodeRoot, "dateStarted", FieldType.DATE));
+        registry.put(SearchFields.EOC_END_DATE,
+                createFieldFactory(queryContext -> queryContext.episodeRoot, "dateEnded", FieldType.DATE));
+        registry.put(SearchFields.EOC_CARE_MANAGER,
+                createFieldFactory(joinResolver::joinCareManager, "uuid", FieldType.STRING));
+
+        registry.put(SearchFields.PROGRAM_UUID,
+                createFieldFactory(joinResolver::joinProgram, "uuid", FieldType.STRING));
+        registry.put(SearchFields.PROGRAM_TYPE,
+                createFieldFactory(joinResolver::joinProgramConcept, "uuid", FieldType.STRING));
+        registry.put(SearchFields.PROGRAM_LOCATION,
+                createFieldFactory(joinResolver::joinLocation, "uuid", FieldType.STRING));
+
+        registry.put(SearchFields.PROGRAM_STATUS,
+                createFieldFactory(joinResolver::joinStateConcept, "uuid", FieldType.STRING));
+        registry.put(SearchFields.PROGRAM_STATUS_DATE,
+                createFieldFactory(joinResolver::joinStates, "startDate", FieldType.DATE));
+
+        registry.put(SearchFields.PATIENT_IDENTIFIER_KIND, this::buildIdentifierKindPredicate);
+        registry.put(SearchFields.PATIENT_IDENTIFIER_VALUE,
+                createFieldFactory(joinResolver::joinPatientIdentifiers, "identifier", FieldType.STRING));
+
+        registry.put(SearchFields.PROGRAM_ATTRIBUTE_KIND,
+                createFieldFactory(joinResolver::joinAttributeType, "uuid", FieldType.STRING));
+        registry.put(SearchFields.PROGRAM_ATTRIBUTE_VALUE,
+                createFieldFactory(joinResolver::joinAttributes, "valueReference", FieldType.STRING));
+
+        return registry;
+    }
+
+    private FieldPredicateFactory createFieldFactory(Function<QueryContext, From<?, ?>> joinFunction,
+                                                     String propertyName, FieldType fieldType) {
+        return (queryContext, fieldName, comparator, value, operator) -> {
+            validateComparator(fieldName, comparator, fieldType);
+            Path<?> fieldPath = joinFunction.apply(queryContext).get(propertyName);
+            return buildPredicate(queryContext.criteriaBuilder, fieldPath, comparator, value);
+        };
+    }
+
+    private Predicate buildIdentifierKindPredicate(QueryContext queryContext, String fieldName,
+                                                    FieldComparator comparator, String value,
+                                                    ConditionOperator operator) {
+        validateComparator(fieldName, comparator, FieldType.STRING);
+        From<?, ?> identifierTypeJoin = joinResolver.joinIdentifierType(queryContext);
+
+        Predicate uuidMatch = queryContext.criteriaBuilder.equal(identifierTypeJoin.get("uuid"), value);
+        Predicate nameMatch = queryContext.criteriaBuilder.equal(identifierTypeJoin.get("name"), value);
+
+        ConditionOperator effectiveOperator = operator != null ? operator : ConditionOperator.OR;
+        return effectiveOperator == ConditionOperator.AND
+                ? queryContext.criteriaBuilder.and(uuidMatch, nameMatch)
+                : queryContext.criteriaBuilder.or(uuidMatch, nameMatch);
+    }
+
+    private Predicate buildCriterion(QueryContext queryContext, SearchCriteria criteria) {
+        if (criteria == null) {
             return null;
         }
-        if (childCriteria.size() == 1) {
-            return childCriteria.get(0);
+        if (criteria.isLeaf()) {
+            return buildLeafCriterion(queryContext, criteria);
         }
-
-        Junction junction = (condition.getOperator() == ConditionOperator.OR)
-                ? Restrictions.disjunction()
-                : Restrictions.conjunction();
-        for (Criterion criterion : childCriteria) {
-            junction.add(criterion);
-        }
-        return junction;
+        return combineChildPredicates(queryContext, criteria);
     }
 
-    private Criterion buildLeafCriterion(Criteria criteria, SearchCriteria leaf, Set<String> createdAliases) {
-        String field = leaf.getField();
-        FieldComparator comparator = leaf.getComparator();
-        String rawValue = leaf.getValue();
+    private Predicate buildLeafCriterion(QueryContext queryContext, SearchCriteria leafCriteria) {
+        String fieldName = leafCriteria.getField();
+        FieldComparator comparator = leafCriteria.getComparator();
 
-        if (comparator == null) {
+        FieldPredicateFactory factory = fieldRegistry.get(fieldName);
+        if (factory == null) {
             throw new InvalidSearchCriteriaException(
-                    "Missing comparator for field '" + field + "'. Supported: eq, gt, lt",
+                    "Unknown search field: '" + fieldName + "'",
                     SearchResponseErrorStatus.BAD_REQUEST);
         }
 
-        switch (field) {
-            // --- Episode of Care fields (direct on root Episode entity) ---
-            case SearchFields.EOC_START_DATE:
-                validateDateOnly(field, comparator);
-                return buildDateRestriction(ROOT_ALIAS + ".dateStarted", comparator, parseDate(rawValue));
+        return factory.build(queryContext, fieldName, comparator,
+                leafCriteria.getValue(), leafCriteria.getOperator());
+    }
 
-            case SearchFields.EOC_END_DATE:
-                validateDateOnly(field, comparator);
-                return buildDateRestriction(ROOT_ALIAS + ".dateEnded", comparator, parseDate(rawValue));
+    private Predicate combineChildPredicates(QueryContext queryContext, SearchCriteria parentCriteria) {
+        List<Predicate> childPredicates = new ArrayList<>();
+        if (parentCriteria.getConditions() != null) {
+            for (SearchCriteria childCriteria : parentCriteria.getConditions()) {
+                Predicate resolvedPredicate = buildCriterion(queryContext, childCriteria);
+                if (resolvedPredicate != null) {
+                    childPredicates.add(resolvedPredicate);
+                }
+            }
+        }
 
-            case SearchFields.EOC_CARE_MANAGER:
-                validateEqOnly(field, comparator);
-                joinCareManager(criteria, createdAliases);
-                return Restrictions.eq("cm.uuid", rawValue);
+        if (childPredicates.isEmpty()) {
+            return null;
+        }
+        if (childPredicates.size() == 1) {
+            return childPredicates.get(0);
+        }
 
-            // --- Program fields (via enrollment alias) ---
-            case SearchFields.PROGRAM_UUID:
-                validateEqOnly(field, comparator);
-                joinProgram(criteria, createdAliases);
-                return Restrictions.eq("prog.uuid", rawValue);
+        Predicate[] predicateArray = childPredicates.toArray(new Predicate[0]);
+        return parentCriteria.getOperator() == ConditionOperator.OR
+                ? queryContext.criteriaBuilder.or(predicateArray)
+                : queryContext.criteriaBuilder.and(predicateArray);
+    }
 
-            case SearchFields.PROGRAM_TYPE:
-                validateEqOnly(field, comparator);
-                joinProgramConcept(criteria, createdAliases);
-                return Restrictions.eq("progConcept.uuid", rawValue);
-
-            case SearchFields.PROGRAM_LOCATION:
-                validateEqOnly(field, comparator);
-                joinLocation(criteria, createdAliases);
-                return Restrictions.eq("loc.uuid", rawValue);
-
-            // --- Program state fields ---
-            case SearchFields.PROGRAM_STATUS:
-                validateEqOnly(field, comparator);
-                joinStateConcept(criteria, createdAliases);
-                return Restrictions.eq("psConcept.uuid", rawValue);
-
-            case SearchFields.PROGRAM_STATUS_DATE:
-                validateDateOnly(field, comparator);
-                joinStates(criteria, createdAliases);
-                return buildDateRestriction("ps.startDate", comparator, parseDate(rawValue));
-
-            // --- Patient identifier fields ---
-            case SearchFields.PATIENT_IDENTIFIER_KIND:
-                validateEqOnly(field, comparator);
-                joinIdentifierType(criteria, createdAliases);
-                return Restrictions.or(
-                        Restrictions.eq("pit.uuid", rawValue),
-                        Restrictions.eq("pit.name", rawValue));
-
-            case SearchFields.PATIENT_IDENTIFIER_VALUE:
-                validateEqOnly(field, comparator);
-                joinPatientIdentifiers(criteria, createdAliases);
-                return Restrictions.eq("pi.identifier", rawValue);
-
-            // --- Program attribute fields ---
-            case SearchFields.PROGRAM_ATTRIBUTE_KIND:
-                validateEqOnly(field, comparator);
-                joinAttributeType(criteria, createdAliases);
-                return Restrictions.eq("ppat.uuid", rawValue);
-
-            case SearchFields.PROGRAM_ATTRIBUTE_VALUE:
-                validateEqOnly(field, comparator);
-                joinAttributes(criteria, createdAliases);
-                return Restrictions.eq("ppa.valueReference", rawValue);
-
+    @SuppressWarnings("unchecked")
+    private Predicate buildPredicate(CriteriaBuilder criteriaBuilder, Path<?> fieldPath,
+                                     FieldComparator comparator, String value) {
+        switch (comparator) {
+            case EQ: return criteriaBuilder.equal(fieldPath, value);
+            case GT: return criteriaBuilder.greaterThan((Path<Date>) fieldPath, parseDate(value));
+            case LT: return criteriaBuilder.lessThan((Path<Date>) fieldPath, parseDate(value));
             default:
                 throw new InvalidSearchCriteriaException(
-                        "Unknown search field: '" + field + "'", SearchResponseErrorStatus.BAD_REQUEST);
+                        "Unsupported comparator: " + comparator,
+                        SearchResponseErrorStatus.BAD_REQUEST);
         }
     }
 
-    // ---- Join helpers (each alias created at most once) ----
-
-    private void joinCareManager(Criteria criteria, Set<String> created) {
-        if (created.add("cm")) {
-            criteria.createAlias(ROOT_ALIAS + ".careManager", "cm", JoinType.INNER_JOIN);
+    private void validateComparator(String fieldName, FieldComparator comparator, FieldType fieldType) {
+        if (!fieldType.supports(comparator)) {
+            throw new InvalidSearchCriteriaException(
+                    "Comparator '" + comparator.name().toLowerCase()
+                            + "' is not supported for field '" + fieldName
+                            + "'. Supported: " + fieldType.getSupportedComparators().toString().toLowerCase(),
+                    SearchResponseErrorStatus.BAD_REQUEST);
         }
     }
 
-    private void joinProgram(Criteria criteria, Set<String> created) {
-        if (created.add("prog")) {
-            criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".program", "prog", JoinType.INNER_JOIN);
-        }
-    }
-
-    private void joinProgramConcept(Criteria criteria, Set<String> created) {
-        joinProgram(criteria, created);
-        if (created.add("progConcept")) {
-            criteria.createAlias("prog.concept", "progConcept", JoinType.INNER_JOIN);
-        }
-    }
-
-    private void joinLocation(Criteria criteria, Set<String> created) {
-        if (created.add("loc")) {
-            criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".location", "loc", JoinType.INNER_JOIN);
-        }
-    }
-
-    private void joinStates(Criteria criteria, Set<String> created) {
-        if (created.add("ps")) {
-            criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".states", "ps", JoinType.INNER_JOIN);
-            criteria.add(Restrictions.eq("ps.voided", false));
-        }
-    }
-
-    private void joinWorkflowState(Criteria criteria, Set<String> created) {
-        joinStates(criteria, created);
-        if (created.add("psState")) {
-            criteria.createAlias("ps.state", "psState", JoinType.INNER_JOIN);
-        }
-    }
-
-    private void joinStateConcept(Criteria criteria, Set<String> created) {
-        joinWorkflowState(criteria, created);
-        if (created.add("psConcept")) {
-            criteria.createAlias("psState.concept", "psConcept", JoinType.INNER_JOIN);
-        }
-    }
-
-    private void joinPatientIdentifiers(Criteria criteria, Set<String> created) {
-        if (created.add("pat")) {
-            criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".patient", "pat", JoinType.INNER_JOIN);
-        }
-        if (created.add("pi")) {
-            criteria.createAlias("pat.identifiers", "pi", JoinType.INNER_JOIN);
-            criteria.add(Restrictions.eq("pi.voided", false));
-        }
-    }
-
-    private void joinIdentifierType(Criteria criteria, Set<String> created) {
-        joinPatientIdentifiers(criteria, created);
-        if (created.add("pit")) {
-            criteria.createAlias("pi.identifierType", "pit", JoinType.INNER_JOIN);
-        }
-    }
-
-    private void joinAttributes(Criteria criteria, Set<String> created) {
-        if (created.add("ppa")) {
-            criteria.createAlias(PATIENT_PROGRAM_ALIAS + ".attributes", "ppa", JoinType.INNER_JOIN);
-            criteria.add(Restrictions.eq("ppa.voided", false));
-        }
-    }
-
-    private void joinAttributeType(Criteria criteria, Set<String> created) {
-        joinAttributes(criteria, created);
-        if (created.add("ppat")) {
-            criteria.createAlias("ppa.attributeType", "ppat", JoinType.INNER_JOIN);
-        }
-    }
-
-    // ---- Value parsing and comparator validation ----
-
-    private Criterion buildDateRestriction(String property, FieldComparator comparator, Date value) {
-        switch (comparator) {
-            case GT: return Restrictions.gt(property, value);
-            case LT: return Restrictions.lt(property, value);
-            default: throw new IllegalArgumentException("Unsupported date comparator: " + comparator);
-        }
-    }
-
-    private Date parseDate(String value) {
+    private Date parseDate(String dateValue) {
         try {
-            OffsetDateTime odt = OffsetDateTime.parse(value, ISO_DATETIME_FORMAT);
-            return Date.from(odt.toInstant());
-        } catch (DateTimeParseException e) {
+            return Date.from(OffsetDateTime.parse(dateValue, ISO_DATETIME_FORMAT).toInstant());
+        } catch (DateTimeParseException exception) {
             throw new InvalidSearchCriteriaException(
-                    "Invalid date format: '" + value + "'. Expected yyyy-MM-dd'T'HH:mm:ss.SSSZ (e.g. 2024-01-01T10:30:00.000+0530)",
-                    SearchResponseErrorStatus.BAD_REQUEST);
-        }
-    }
-
-    private void validateEqOnly(String field, FieldComparator comparator) {
-        if (comparator != FieldComparator.EQ) {
-            throw new InvalidSearchCriteriaException(
-                    "Only 'eq' comparator is supported for field '" + field + "'",
-                    SearchResponseErrorStatus.BAD_REQUEST);
-        }
-    }
-
-    private void validateDateOnly(String field, FieldComparator comparator) {
-        if (comparator != FieldComparator.GT && comparator != FieldComparator.LT) {
-            throw new InvalidSearchCriteriaException(
-                    "Only 'gt' and 'lt' comparators are supported for field '" + field + "'",
+                    "Invalid date format: '" + dateValue
+                            + "'. Expected yyyy-MM-dd'T'HH:mm:ss.SSSZ (e.g. 2024-01-01T10:30:00.000+0530)",
                     SearchResponseErrorStatus.BAD_REQUEST);
         }
     }
