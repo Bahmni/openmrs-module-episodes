@@ -22,7 +22,7 @@ import org.openmrs.ProgramWorkflowState;
 import org.openmrs.Provider;
 import org.openmrs.attribute.Attribute;
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.search.constants.ResponseKeyConstants;
+import org.openmrs.module.episodes.search.ResponseKeyConstants;
 
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;

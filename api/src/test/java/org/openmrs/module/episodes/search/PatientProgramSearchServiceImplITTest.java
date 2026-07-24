@@ -23,7 +23,6 @@ import org.openmrs.api.PersonService;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.search.constants.SearchFields;
 import org.openmrs.module.episodes.search.model.SearchCriteria;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.model.FieldComparator;

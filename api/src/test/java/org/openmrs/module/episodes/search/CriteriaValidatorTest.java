@@ -9,7 +9,6 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.openmrs.module.episodes.search.constants.SearchFields;
 import org.openmrs.module.episodes.search.model.SearchCriteria;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.validation.CriteriaValidator;
@@ -92,7 +91,7 @@ public class CriteriaValidatorTest {
     @Test
     public void shouldThrowWhenGroupHasNoConditions() {
         thrown.expect(InvalidSearchCriteriaException.class);
-        thrown.expectMessage("at least one condition");
+        thrown.expectMessage("must be either a leaf");
 
         validator.validateRequest(requestWith(group(ConditionOperator.AND)));
     }
