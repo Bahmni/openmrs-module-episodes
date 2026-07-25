@@ -13,6 +13,8 @@ import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
+import org.openmrs.module.episodes.search.model.ContextSearchResponse;
+import org.openmrs.module.episodes.search.model.EpisodeSearchResponse;
 import org.openmrs.module.episodes.search.validation.CriteriaValidator;
 import org.openmrs.module.episodes.service.SearchService;
 import org.openmrs.module.episodes.search.model.SearchRequest;
@@ -47,14 +49,14 @@ public class PatientProgramSearchServiceImpl implements SearchService {
     }
 
     @Override
-    public List<Map<String, Object>> search(SearchRequest request) {
+    public ContextSearchResponse search(SearchRequest request) {
         log.debug("Searching patient programs for entity '{}'", request.getEntity());
         validator.validateRequest(request);
 
         List<Episode> episodes = patientProgramSearchDAO.search(request.getCriteria());
         if (episodes.isEmpty()) {
             log.debug("No episodes found for the given criteria");
-            return new ArrayList<>();
+            return new EpisodeSearchResponse(ENTITY, new ArrayList<>());
         }
 
         List<Map<String, Object>> results = new ArrayList<>();
@@ -66,6 +68,6 @@ public class PatientProgramSearchServiceImpl implements SearchService {
         }
 
         log.debug("Returning {} patient program results", results.size());
-        return results;
+        return new EpisodeSearchResponse(ENTITY, results);
     }
 }

@@ -11,6 +11,7 @@ package org.openmrs.module.episodes.web.controller;
 
 import org.openmrs.module.episodes.service.SearchService;
 import org.openmrs.module.episodes.search.SearchServiceRegistry;
+import org.openmrs.module.episodes.search.model.ContextSearchResponse;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.EpisodeSearchException;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
@@ -26,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,9 +52,7 @@ public class EpisodeSearchController {
     public ResponseEntity<?> search(@RequestBody SearchRequest request) {
         try {
             SearchService service = searchServiceRegistry.resolve(request.getEntity());
-            List<Map<String, Object>> results = service.search(request);
-            Map<String, Object> response = new HashMap<>();
-            response.put("results", results);
+            ContextSearchResponse response = service.search(request);
             return ResponseEntity.ok(response);
         } catch (InvalidSearchCriteriaException e) {
             return ResponseEntity.status(e.getStatus().getCode())

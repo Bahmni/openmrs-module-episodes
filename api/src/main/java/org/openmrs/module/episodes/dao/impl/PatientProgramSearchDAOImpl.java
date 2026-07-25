@@ -15,7 +15,7 @@ import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
 import org.openmrs.module.episodes.search.builder.QueryContext;
-import org.openmrs.module.episodes.search.model.SearchCriteria;
+import org.openmrs.module.episodes.search.model.SearchCondition;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -39,7 +39,7 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
     }
 
     @Override
-    public List<Episode> search(SearchCriteria searchCriteria) {
+    public List<Episode> search(SearchCondition searchCriteria) {
         Session session = sessionFactory.getCurrentSession();
         CriteriaBuilder cb = session.getCriteriaBuilder();
 

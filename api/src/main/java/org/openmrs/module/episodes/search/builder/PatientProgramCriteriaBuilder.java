@@ -9,13 +9,14 @@
 
 package org.openmrs.module.episodes.search.builder;
 
+import org.openmrs.module.episodes.search.SearchKeyConstants;
 import org.openmrs.module.episodes.search.SearchFields;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
 import org.openmrs.module.episodes.search.model.ConditionOperator;
 import org.openmrs.module.episodes.search.model.FieldComparator;
 import org.openmrs.module.episodes.search.model.FieldType;
-import org.openmrs.module.episodes.search.model.SearchCriteria;
+import org.openmrs.module.episodes.search.model.SearchCondition;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
@@ -38,54 +39,54 @@ public class PatientProgramCriteriaBuilder {
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     private final PatientProgramJoinResolver joinResolver = new PatientProgramJoinResolver();
-    private final Map<String, FieldPredicateFactory> fieldRegistry;
+    private final Map<String, SearchFieldPredicate> fieldRegistry;
 
     public PatientProgramCriteriaBuilder() {
         this.fieldRegistry = Collections.unmodifiableMap(buildFieldRegistry());
     }
 
-    public void apply(QueryContext queryContext, SearchCriteria criteria) {
+    public void apply(QueryContext queryContext, SearchCondition criteria) {
         Predicate predicate = buildCriterion(queryContext, criteria);
         if (predicate != null) {
             queryContext.predicates.add(predicate);
         }
     }
 
-    private Map<String, FieldPredicateFactory> buildFieldRegistry() {
-        Map<String, FieldPredicateFactory> registry = new HashMap<>();
+    private Map<String, SearchFieldPredicate> buildFieldRegistry() {
+        Map<String, SearchFieldPredicate> registry = new HashMap<>();
 
         registry.put(SearchFields.EOC_START_DATE,
-                createFieldFactory(queryContext -> queryContext.episodeRoot, "dateStarted", FieldType.DATE));
+                createFieldPredicate(queryContext -> queryContext.episodeRoot, SearchKeyConstants.EPISODE_DATE_STARTED, FieldType.DATE));
         registry.put(SearchFields.EOC_END_DATE,
-                createFieldFactory(queryContext -> queryContext.episodeRoot, "dateEnded", FieldType.DATE));
+                createFieldPredicate(queryContext -> queryContext.episodeRoot, SearchKeyConstants.EPISODE_DATE_ENDED, FieldType.DATE));
         registry.put(SearchFields.EOC_CARE_MANAGER,
-                createFieldFactory(joinResolver::joinCareManager, "uuid", FieldType.STRING));
+                createFieldPredicate(joinResolver::joinCareManager, SearchKeyConstants.COMMON_UUID, FieldType.STRING));
 
         registry.put(SearchFields.PROGRAM_UUID,
-                createFieldFactory(joinResolver::joinProgram, "uuid", FieldType.STRING));
+                createFieldPredicate(joinResolver::joinProgram, SearchKeyConstants.COMMON_UUID, FieldType.STRING));
         registry.put(SearchFields.PROGRAM_TYPE,
-                createFieldFactory(joinResolver::joinProgramConcept, "uuid", FieldType.STRING));
+                createFieldPredicate(joinResolver::joinProgramConcept, SearchKeyConstants.COMMON_UUID, FieldType.STRING));
         registry.put(SearchFields.PROGRAM_LOCATION,
-                createFieldFactory(joinResolver::joinLocation, "uuid", FieldType.STRING));
+                createFieldPredicate(joinResolver::joinLocation, SearchKeyConstants.COMMON_UUID, FieldType.STRING));
 
         registry.put(SearchFields.PROGRAM_STATUS,
-                createFieldFactory(joinResolver::joinStateConcept, "uuid", FieldType.STRING));
+                createFieldPredicate(joinResolver::joinStateConcept, SearchKeyConstants.COMMON_UUID, FieldType.STRING));
         registry.put(SearchFields.PROGRAM_STATUS_DATE,
-                createFieldFactory(joinResolver::joinStates, "startDate", FieldType.DATE));
+                createFieldPredicate(joinResolver::joinStates, SearchKeyConstants.STATE_START_DATE, FieldType.DATE));
 
         registry.put(SearchFields.PATIENT_IDENTIFIER_KIND, this::buildIdentifierKindPredicate);
         registry.put(SearchFields.PATIENT_IDENTIFIER_VALUE,
-                createFieldFactory(joinResolver::joinPatientIdentifiers, "identifier", FieldType.STRING));
+                createFieldPredicate(joinResolver::joinPatientIdentifiers, SearchKeyConstants.IDENTIFIER_VALUE, FieldType.STRING));
 
         registry.put(SearchFields.PROGRAM_ATTRIBUTE_KIND,
-                createFieldFactory(joinResolver::joinAttributeType, "uuid", FieldType.STRING));
+                createFieldPredicate(joinResolver::joinAttributeType, SearchKeyConstants.COMMON_UUID, FieldType.STRING));
         registry.put(SearchFields.PROGRAM_ATTRIBUTE_VALUE,
-                createFieldFactory(joinResolver::joinAttributes, "valueReference", FieldType.STRING));
+                createFieldPredicate(joinResolver::joinAttributes, SearchKeyConstants.ATTRIBUTE_VALUE_REFERENCE, FieldType.STRING));
 
         return registry;
     }
 
-    private FieldPredicateFactory createFieldFactory(Function<QueryContext, From<?, ?>> joinFunction,
+    private SearchFieldPredicate createFieldPredicate(Function<QueryContext, From<?, ?>> joinFunction,
                                                      String propertyName, FieldType fieldType) {
         return (queryContext, fieldName, comparator, value, operator) -> {
             validateComparator(fieldName, comparator, fieldType);
@@ -100,8 +101,8 @@ public class PatientProgramCriteriaBuilder {
         validateComparator(fieldName, comparator, FieldType.STRING);
         From<?, ?> identifierTypeJoin = joinResolver.joinIdentifierType(queryContext);
 
-        Predicate uuidMatch = queryContext.criteriaBuilder.equal(identifierTypeJoin.get("uuid"), value);
-        Predicate nameMatch = queryContext.criteriaBuilder.equal(identifierTypeJoin.get("name"), value);
+        Predicate uuidMatch = queryContext.criteriaBuilder.equal(identifierTypeJoin.get(SearchKeyConstants.COMMON_UUID), value);
+        Predicate nameMatch = queryContext.criteriaBuilder.equal(identifierTypeJoin.get(SearchKeyConstants.COMMON_NAME), value);
 
         ConditionOperator effectiveOperator = operator != null ? operator : ConditionOperator.OR;
         return effectiveOperator == ConditionOperator.AND
@@ -109,7 +110,7 @@ public class PatientProgramCriteriaBuilder {
                 : queryContext.criteriaBuilder.or(uuidMatch, nameMatch);
     }
 
-    private Predicate buildCriterion(QueryContext queryContext, SearchCriteria criteria) {
+    private Predicate buildCriterion(QueryContext queryContext, SearchCondition criteria) {
         if (criteria == null) {
             return null;
         }
@@ -119,25 +120,25 @@ public class PatientProgramCriteriaBuilder {
         return combineChildPredicates(queryContext, criteria);
     }
 
-    private Predicate buildLeafCriterion(QueryContext queryContext, SearchCriteria leafCriteria) {
+    private Predicate buildLeafCriterion(QueryContext queryContext, SearchCondition leafCriteria) {
         String fieldName = leafCriteria.getField();
         FieldComparator comparator = leafCriteria.getComparator();
 
-        FieldPredicateFactory factory = fieldRegistry.get(fieldName);
-        if (factory == null) {
+        SearchFieldPredicate fieldPredicate = fieldRegistry.get(fieldName);
+        if (fieldPredicate == null) {
             throw new InvalidSearchCriteriaException(
                     "Unknown search field: '" + fieldName + "'",
                     SearchResponseErrorStatus.BAD_REQUEST);
         }
 
-        return factory.build(queryContext, fieldName, comparator,
+        return fieldPredicate.build(queryContext, fieldName, comparator,
                 leafCriteria.getValue(), leafCriteria.getOperator());
     }
 
-    private Predicate combineChildPredicates(QueryContext queryContext, SearchCriteria parentCriteria) {
+    private Predicate combineChildPredicates(QueryContext queryContext, SearchCondition parentCriteria) {
         List<Predicate> childPredicates = new ArrayList<>();
         if (parentCriteria.getConditions() != null) {
-            for (SearchCriteria childCriteria : parentCriteria.getConditions()) {
+            for (SearchCondition childCriteria : parentCriteria.getConditions()) {
                 Predicate resolvedPredicate = buildCriterion(queryContext, childCriteria);
                 if (resolvedPredicate != null) {
                     childPredicates.add(resolvedPredicate);

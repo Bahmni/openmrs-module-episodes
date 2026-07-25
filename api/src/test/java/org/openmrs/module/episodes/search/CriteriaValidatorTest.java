@@ -9,8 +9,7 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.openmrs.module.episodes.search.model.SearchCriteria;
-import org.openmrs.module.episodes.search.model.ConditionOperator;
+import org.openmrs.module.episodes.search.model.SearchCondition;
 import org.openmrs.module.episodes.search.validation.CriteriaValidator;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
@@ -51,15 +50,15 @@ public class CriteriaValidatorTest {
 
     @Test
     public void shouldPassValidationForOrOperatorAtRoot() {
-        validator.validateRequest(requestWith(group(ConditionOperator.OR,
+        validator.validateRequest(requestWith(group("or",
                 leaf(SearchFields.EOC_START_DATE, GT, DATE_FROM))));
     }
 
     @Test
     public void shouldPassValidationForOrOperatorInNestedGroup() {
-        SearchCriteria inner = group(ConditionOperator.OR,
+        SearchCondition inner = group("or",
                 leaf(SearchFields.EOC_START_DATE, GT, DATE_FROM));
-        SearchCriteria outer = group(ConditionOperator.AND, inner);
+        SearchCondition outer = group("and", inner);
 
         validator.validateRequest(requestWith(outer));
     }
@@ -69,7 +68,7 @@ public class CriteriaValidatorTest {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("comparator");
 
-        SearchCriteria leaf = new SearchCriteria();
+        SearchCondition leaf = new SearchCondition();
         leaf.setField(SearchFields.EOC_START_DATE);
         leaf.setValue(DATE_FROM);
 
@@ -81,7 +80,7 @@ public class CriteriaValidatorTest {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("value");
 
-        SearchCriteria leaf = new SearchCriteria();
+        SearchCondition leaf = new SearchCondition();
         leaf.setField(SearchFields.EOC_START_DATE);
         leaf.setComparator(GT);
 
@@ -93,7 +92,7 @@ public class CriteriaValidatorTest {
         thrown.expect(InvalidSearchCriteriaException.class);
         thrown.expectMessage("must be either a leaf");
 
-        validator.validateRequest(requestWith(group(ConditionOperator.AND)));
+        validator.validateRequest(requestWith(group("and")));
     }
 
     @Test
@@ -103,14 +102,14 @@ public class CriteriaValidatorTest {
 
     @Test
     public void shouldPassValidationForAndGroup() {
-        validator.validateRequest(requestWith(group(ConditionOperator.AND,
+        validator.validateRequest(requestWith(group("and",
                 leaf(SearchFields.EOC_START_DATE, GT, DATE_FROM),
                 leaf(SearchFields.EOC_START_DATE, LT, DATE_TO))));
     }
 
     @Test
     public void shouldCollectMultipleErrorsWhenBothComparatorAndValueAreMissing() {
-        SearchCriteria leaf = new SearchCriteria();
+        SearchCondition leaf = new SearchCondition();
         leaf.setField(SearchFields.EOC_START_DATE);
         // both comparator and value are missing
 
@@ -124,16 +123,16 @@ public class CriteriaValidatorTest {
 
     @Test
     public void shouldCollectErrorsFromMultipleChildConditions() {
-        SearchCriteria leaf1 = new SearchCriteria();
+        SearchCondition leaf1 = new SearchCondition();
         leaf1.setField(SearchFields.EOC_START_DATE);
         // missing comparator and value
 
-        SearchCriteria leaf2 = new SearchCriteria();
+        SearchCondition leaf2 = new SearchCondition();
         leaf2.setField(SearchFields.PROGRAM_LOCATION);
         leaf2.setComparator(EQ);
         // missing value
 
-        SearchCriteria root = group(ConditionOperator.AND, leaf1, leaf2);
+        SearchCondition root = group("and", leaf1, leaf2);
 
         try {
             validator.validateRequest(requestWith(root));
@@ -145,34 +144,34 @@ public class CriteriaValidatorTest {
 
     @Test
     public void shouldPassValidationForNestedAndGroups() {
-        SearchCriteria inner = group(ConditionOperator.AND,
+        SearchCondition inner = group("and",
                 leaf(SearchFields.PATIENT_IDENTIFIER_KIND, EQ, "NATIONAL_ID"),
                 leaf(SearchFields.PATIENT_IDENTIFIER_VALUE, EQ, "N456"));
 
-        SearchCriteria outer = group(ConditionOperator.AND,
+        SearchCondition outer = group("and",
                 leaf(SearchFields.EOC_START_DATE, GT, DATE_FROM),
                 inner);
 
         validator.validateRequest(requestWith(outer));
     }
 
-    private SearchRequest requestWith(SearchCriteria criteria) {
+    private SearchRequest requestWith(SearchCondition criteria) {
         SearchRequest request = new SearchRequest();
         request.setEntity("patientProgram");
         request.setCriteria(criteria);
         return request;
     }
 
-    private SearchCriteria leaf(String field, String comparator, String value) {
-        SearchCriteria criteria = new SearchCriteria();
+    private SearchCondition leaf(String field, String comparator, String value) {
+        SearchCondition criteria = new SearchCondition();
         criteria.setField(field);
         criteria.setComparator(comparator);
         criteria.setValue(value);
         return criteria;
     }
 
-    private SearchCriteria group(ConditionOperator operator, SearchCriteria... children) {
-        SearchCriteria criteria = new SearchCriteria();
+    private SearchCondition group(String operator, SearchCondition... children) {
+        SearchCondition criteria = new SearchCondition();
         criteria.setOperator(operator);
         criteria.setConditions(children.length > 0 ? Arrays.asList(children) : Collections.emptyList());
         return criteria;

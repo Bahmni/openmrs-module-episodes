@@ -17,7 +17,7 @@ public final class SearchFields {
 
     public static final String PROGRAM_UUID = "program.uuid";
     public static final String PROGRAM_TYPE = "program.type";
-    public static final String PROGRAM_LOCATION = "program.location";
+    public static final String PROGRAM_LOCATION = "location.uuid";
     public static final String PROGRAM_STATUS = "program.status";
     public static final String PROGRAM_STATUS_DATE = "program.statusDate";
     public static final String PROGRAM_ATTRIBUTE_KIND = "program.attributeType.kind";

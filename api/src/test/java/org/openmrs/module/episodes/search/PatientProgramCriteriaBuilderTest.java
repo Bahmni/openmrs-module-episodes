@@ -16,7 +16,7 @@ import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
 import org.openmrs.module.episodes.search.builder.QueryContext;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
-import org.openmrs.module.episodes.search.model.SearchCriteria;
+import org.openmrs.module.episodes.search.model.SearchCondition;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
@@ -73,8 +73,8 @@ public class PatientProgramCriteriaBuilderTest {
         return new QueryContext(mockCriteriaBuilder, mockEpisodeRoot, mockPatientProgramJoin, predicates);
     }
 
-    private SearchCriteria createLeafCriteria(String fieldName, String comparator, String value) {
-        SearchCriteria criteria = new SearchCriteria();
+    private SearchCondition createLeafCriteria(String fieldName, String comparator, String value) {
+        SearchCondition criteria = new SearchCondition();
         criteria.setField(fieldName);
         criteria.setComparator(comparator);
         criteria.setValue(value);

@@ -9,7 +9,7 @@
 
 package org.openmrs.module.episodes.search;
 
-public final class ResponseKeyConstants {
+public final class SearchKeyConstants {
 
     public static final String COMMON_UUID = "uuid";
     public static final String COMMON_NAME = "name";
@@ -48,6 +48,7 @@ public final class ResponseKeyConstants {
     public static final String PROGRAM_DESCRIPTION = "description";
 
     public static final String ATTRIBUTE_VALUE = "value";
+    public static final String ATTRIBUTE_VALUE_REFERENCE = "valueReference";
     public static final String ATTRIBUTE_TYPE = "attributeType";
 
     public static final String STATE_START_DATE = "startDate";
