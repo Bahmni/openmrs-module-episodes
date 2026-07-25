@@ -11,10 +11,8 @@ package org.openmrs.module.episodes.service;
 
 import org.openmrs.annotation.Authorized;
 import org.openmrs.module.episodes.constants.Privileges;
+import org.openmrs.module.episodes.search.model.ContextSearchResponse;
 import org.openmrs.module.episodes.search.model.SearchRequest;
-
-import java.util.List;
-import java.util.Map;
 
 
 public interface SearchService {
@@ -30,5 +28,5 @@ public interface SearchService {
             Privileges.GET_PATIENTS,
             Privileges.GET_PERSON_ATTRIBUTE_TYPES
     }, requireAll = true)
-    List<Map<String, Object>> search(SearchRequest request);
+    ContextSearchResponse search(SearchRequest request);
 }

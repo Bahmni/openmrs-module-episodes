@@ -10,11 +10,11 @@
 package org.openmrs.module.episodes.dao;
 
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.search.model.SearchCriteria;
+import org.openmrs.module.episodes.search.model.SearchCondition;
 
 import java.util.List;
 
 public interface PatientProgramSearchDAO {
 
-    List<Episode> search(SearchCriteria criteria);
+    List<Episode> search(SearchCondition criteria);
 }

@@ -15,7 +15,7 @@ import org.openmrs.module.episodes.search.model.FieldComparator;
 import javax.persistence.criteria.Predicate;
 
 @FunctionalInterface
-public interface FieldPredicateFactory {
+public interface SearchFieldPredicate {
     Predicate build(QueryContext queryContext, String fieldName,
                     FieldComparator comparator, String value,
                     ConditionOperator operator);

@@ -10,12 +10,16 @@
 package org.openmrs.module.episodes.search.model;
 
 import lombok.Getter;
-import lombok.Setter;
+
+import java.util.Date;
 
 @Getter
-@Setter
-public class SearchRequest {
+public class SearchResponseMeta {
 
-    private String entity;
-    private SearchCondition criteria;
+    private final Date timestamp;
+
+    public SearchResponseMeta() {
+        this.timestamp = new Date();
+    }
+
 }

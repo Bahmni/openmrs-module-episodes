@@ -9,43 +9,32 @@
 
 package org.openmrs.module.episodes.search.model;
 
-import lombok.AccessLevel;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 
 @Getter
-@Setter
-public class SearchCriteria {
+public class SearchCondition {
 
+    @Setter
     private String field;
 
-    @Setter(AccessLevel.NONE)
     private FieldComparator comparator;
-
+    @Setter
     private String value;
 
-    @Setter(AccessLevel.NONE)
     private ConditionOperator operator;
 
-    private List<SearchCriteria> conditions;
+    @Setter
+    private List<SearchCondition> conditions;
 
-    public void setOperator(String operator) {
-        this.operator = ConditionOperator.resolve(operator);
+    public void setComparator(String value) {
+        this.comparator = FieldComparator.resolve(value);
     }
 
-    public void setOperator(ConditionOperator operator) {
-        this.operator = operator;
-    }
-
-    public void setComparator(String comparator) {
-        this.comparator = FieldComparator.resolve(comparator);
-    }
-
-    public void setComparator(FieldComparator comparator) {
-        this.comparator = comparator;
+    public void setOperator(String value) {
+        this.operator = ConditionOperator.resolve(value);
     }
 
     public boolean isLeaf() {

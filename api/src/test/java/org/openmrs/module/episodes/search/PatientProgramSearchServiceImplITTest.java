@@ -23,9 +23,7 @@ import org.openmrs.api.PersonService;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.search.model.SearchCriteria;
-import org.openmrs.module.episodes.search.model.ConditionOperator;
-import org.openmrs.module.episodes.search.model.FieldComparator;
+import org.openmrs.module.episodes.search.model.SearchCondition;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.service.EpisodeService;
@@ -40,12 +38,12 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.openmrs.module.episodes.search.model.FieldComparator.EQ;
-import static org.openmrs.module.episodes.search.model.FieldComparator.GT;
-import static org.openmrs.module.episodes.search.model.FieldComparator.LT;
 
 public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSensitiveTest {
 
+    private static final String EQ = "eq";
+    private static final String GT = "gt";
+    private static final String LT = "lt";
     private static final String DATE_FROM = "2024-01-01T00:00:00.000+0000";
     private static final String DATE_TO = "2024-12-31T23:59:59.000+0000";
 
@@ -77,7 +75,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
 
         List<Map<String, Object>> results = searchService.search(
                 requestWith(leaf(SearchFields.PROGRAM_UUID, EQ, pp.getProgram().getUuid()))
-        );
+        ).getResults();
 
         assertThat(results.size(), is(1));
         assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
@@ -91,12 +89,12 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         episode.setDateStarted(date(2024, 6, 15));
         episodeService.save(episode);
 
-        SearchCriteria range = group(
+        SearchCondition range = group(
                 leaf(SearchFields.EOC_START_DATE, GT, DATE_FROM),
                 leaf(SearchFields.EOC_START_DATE, LT, DATE_TO)
         );
 
-        List<Map<String, Object>> results = searchService.search(requestWith(range));
+        List<Map<String, Object>> results = searchService.search(requestWith(range)).getResults();
 
         assertThat(results.size(), is(1));
         assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
@@ -110,7 +108,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
 
         List<Map<String, Object>> results = searchService.search(
                 requestWith(leaf(SearchFields.PROGRAM_UUID, EQ, pp.getProgram().getUuid()))
-        );
+        ).getResults();
 
         Map<String, Object> result = results.get(0);
         assertThat(result.get("uuid"), notNullValue());
@@ -137,7 +135,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
 
         List<Map<String, Object>> results = searchService.search(
                 requestWith(leaf(SearchFields.EOC_CARE_MANAGER, EQ, provider.getUuid()))
-        );
+        ).getResults();
 
         assertThat(results.size(), is(1));
         assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
@@ -153,7 +151,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
 
         List<Map<String, Object>> results = searchService.search(
                 requestWith(leaf(SearchFields.PROGRAM_LOCATION, EQ, location.getUuid()))
-        );
+        ).getResults();
 
         assertThat(results.size(), is(1));
         assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
@@ -163,7 +161,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
     public void shouldReturnEmptyListWhenNoCriteriaMatch() {
         List<Map<String, Object>> results = searchService.search(
                 requestWith(leaf(SearchFields.PROGRAM_UUID, EQ, "non-existent-uuid"))
-        );
+        ).getResults();
 
         assertThat(results.size(), is(0));
     }
@@ -173,14 +171,14 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         PatientProgram pp = programWorkflowService.getPatientProgram(1);
         saveEpisodeWith(pp);
 
-        SearchCriteria criteria = new SearchCriteria();
-        criteria.setOperator(ConditionOperator.OR);
+        SearchCondition criteria = new SearchCondition();
+        criteria.setOperator("or");
         criteria.setConditions(Arrays.asList(
                 leaf(SearchFields.PROGRAM_UUID, EQ, pp.getProgram().getUuid()),
                 leaf(SearchFields.PROGRAM_UUID, EQ, "non-existent-uuid")
         ));
 
-        List<Map<String, Object>> results = searchService.search(requestWith(criteria));
+        List<Map<String, Object>> results = searchService.search(requestWith(criteria)).getResults();
         assertThat(results.size(), is(1));
         assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
     }
@@ -227,24 +225,24 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         return cal.getTime();
     }
 
-    private SearchRequest requestWith(SearchCriteria criteria) {
+    private SearchRequest requestWith(SearchCondition criteria) {
         SearchRequest request = new SearchRequest();
         request.setEntity("patientProgram");
         request.setCriteria(criteria);
         return request;
     }
 
-    private SearchCriteria leaf(String field, FieldComparator comparator, String value) {
-        SearchCriteria criteria = new SearchCriteria();
+    private SearchCondition leaf(String field, String comparator, String value) {
+        SearchCondition criteria = new SearchCondition();
         criteria.setField(field);
         criteria.setComparator(comparator);
         criteria.setValue(value);
         return criteria;
     }
 
-    private SearchCriteria group(SearchCriteria... children) {
-        SearchCriteria criteria = new SearchCriteria();
-        criteria.setOperator(ConditionOperator.AND);
+    private SearchCondition group(SearchCondition... children) {
+        SearchCondition criteria = new SearchCondition();
+        criteria.setOperator("and");
         criteria.setConditions(Arrays.asList(children));
         return criteria;
     }

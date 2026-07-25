@@ -11,10 +11,11 @@ package org.openmrs.module.episodes.search.validation;
 
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
-import org.openmrs.module.episodes.search.model.SearchCriteria;
+import org.openmrs.module.episodes.search.model.SearchCondition;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CriteriaValidator {
@@ -23,39 +24,41 @@ public class CriteriaValidator {
         if (request.getCriteria() == null) {
             throw new InvalidSearchCriteriaException("Request must include 'criteria'", SearchResponseErrorStatus.BAD_REQUEST);
         }
-        List<String> errors = new ArrayList<>();
-        validateCondition(request.getCriteria(), errors);
+        List<String> errors = validateCondition(request.getCriteria());
         if (!errors.isEmpty()) {
             throw new InvalidSearchCriteriaException(errors, SearchResponseErrorStatus.BAD_REQUEST);
         }
     }
 
-    private void validateCondition(SearchCriteria condition, List<String> errors) {
+    private List<String> validateCondition(SearchCondition condition) {
         if (condition.isLeaf()) {
-            validateLeaf(condition, errors);
+            return validateLeaf(condition);
         } else if (condition.isGroup()) {
-            validateGroup(condition, errors);
-        } else {
-            errors.add("Each condition must be either a leaf {field, comparator, value} or a group {operator, conditions}");
+            return validateGroup(condition);
         }
+        return Collections.singletonList(
+                "Each condition must be either a leaf {field, comparator, value} or a group {operator, conditions}");
     }
 
-    private void validateLeaf(SearchCriteria leaf, List<String> errors) {
+    private List<String> validateLeaf(SearchCondition leaf) {
+        List<String> errors = new ArrayList<>();
         if (leaf.getComparator() == null) {
             errors.add("Leaf condition for field '" + leaf.getField() + "' is missing 'comparator'. Supported: eq, gt, lt");
         }
         if (leaf.getValue() == null || leaf.getValue().isEmpty()) {
             errors.add("Leaf condition for field '" + leaf.getField() + "' is missing 'value'");
         }
+        return errors;
     }
 
-    private void validateGroup(SearchCriteria group, List<String> errors) {
+    private List<String> validateGroup(SearchCondition group) {
         if (group.getConditions() == null || group.getConditions().isEmpty()) {
-            errors.add("A group condition must have at least one condition in 'conditions'");
-        } else {
-            for (SearchCriteria child : group.getConditions()) {
-                validateCondition(child, errors);
-            }
+            return Collections.singletonList("A group condition must have at least one condition in 'conditions'");
         }
+        List<String> errors = new ArrayList<>();
+        for (SearchCondition child : group.getConditions()) {
+            errors.addAll(validateCondition(child));
+        }
+        return errors;
     }
 }
