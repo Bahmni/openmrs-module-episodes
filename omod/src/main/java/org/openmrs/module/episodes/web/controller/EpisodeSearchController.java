@@ -12,6 +12,7 @@ package org.openmrs.module.episodes.web.controller;
 import org.openmrs.module.episodes.service.SearchService;
 import org.openmrs.module.episodes.search.SearchServiceRegistry;
 import org.openmrs.module.episodes.search.model.ContextSearchResponse;
+import org.openmrs.module.episodes.search.model.ErrorSearchResponse;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.EpisodeSearchException;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
@@ -25,11 +26,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/rest/v1/episode")
@@ -49,30 +45,23 @@ public class EpisodeSearchController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseEntity<?> search(@RequestBody SearchRequest request) {
+    public ResponseEntity<ContextSearchResponse> search(@RequestBody SearchRequest request) {
+        String entity = request.getEntity();
         try {
-            SearchService service = searchServiceRegistry.resolve(request.getEntity());
+            SearchService service = searchServiceRegistry.resolve(entity);
             ContextSearchResponse response = service.search(request);
             return ResponseEntity.ok(response);
         } catch (InvalidSearchCriteriaException e) {
             return ResponseEntity.status(e.getStatus().getCode())
-                    .body(buildErrorResponse(e.getStatus().getCode(), e.getMessages()));
+                    .body(new ErrorSearchResponse(entity, e.getStatus().getCode(), e.getMessages()));
         } catch (RuntimeException e) {
             EpisodeSearchException searchException =
                     new EpisodeSearchException("Unexpected error during episode search", e);
             log.error(searchException.getMessage(), searchException);
-            return ResponseEntity.status(searchException.getStatus().getCode())
-                    .body(buildErrorResponse(searchException.getStatus().getCode(),
-                            Collections.singletonList("An unexpected error occurred while processing the search request")));
+            int statusCode = searchException.getStatus().getCode();
+            return ResponseEntity.status(statusCode)
+                    .body(new ErrorSearchResponse(entity, statusCode,
+                            "An unexpected error occurred while processing the search request"));
         }
-    }
-
-    private Map<String, Object> buildErrorResponse(int status, List<String> messages) {
-        Map<String, Object> error = new LinkedHashMap<>();
-        error.put("status", status);
-        error.put("messages", messages);
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("error", error);
-        return response;
     }
 }
