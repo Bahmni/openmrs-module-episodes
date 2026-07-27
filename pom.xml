@@ -54,6 +54,7 @@
 		<mockitoVersion>3.5.11</mockitoVersion>
 		<javaxServletVersion>4.0.1</javaxServletVersion>
 		<webServices.version>2.29.0</webServices.version>
+		<lombokVersion>1.18.30</lombokVersion>
 	</properties>
 
 	<profiles>
@@ -197,6 +198,12 @@
 				<groupId>org.openmrs.module</groupId>
 				<artifactId>webservices.rest-omod</artifactId>
 				<version>${webServices.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lombokVersion}</version>
 				<scope>provided</scope>
 			</dependency>
         </dependencies>

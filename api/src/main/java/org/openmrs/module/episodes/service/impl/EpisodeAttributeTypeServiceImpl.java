@@ -13,7 +13,6 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.episodes.EpisodeAttributeType;
 import org.openmrs.module.episodes.dao.EpisodeAttributeTypeDao;
 import org.openmrs.module.episodes.service.EpisodeAttributeTypeService;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotBlank;
