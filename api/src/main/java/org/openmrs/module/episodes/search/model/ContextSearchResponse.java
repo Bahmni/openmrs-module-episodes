@@ -9,13 +9,14 @@
 
 package org.openmrs.module.episodes.search.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 import java.util.Map;
 
 /**
  * Standard response envelope for context-aware search APIs.
- * This interface will be extracted to a common library when we refactor
- * to share search contracts across modules.
+ * Accommodates both success and error scenarios through a unified contract.
  */
 public interface ContextSearchResponse {
 
@@ -26,4 +27,17 @@ public interface ContextSearchResponse {
     List<Map<String, Object>> getResults();
 
     List<Map<String, String>> getLinks();
+
+    /**
+     * Returns error details when the response represents a failure, or null on success.
+     * Excluded from JSON output when null.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    default SearchError getError() {
+        return null;
+    }
+
+    default boolean isSuccess() {
+        return getError() == null;
+    }
 }
