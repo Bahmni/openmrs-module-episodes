@@ -13,7 +13,6 @@ public final class Privileges {
 
     public static final String GET_EPISODES = "Get Episodes";
     public static final String GET_PROGRAMS = "Get Programs";
-    public static final String GET_PROVIDER_ATTRIBUTE_TYPES = "Get Provider Attribute Types";
     public static final String GET_PATIENT_PROGRAM_ATTRIBUTE_TYPES = "Get Patient Program Attribute Types";
     public static final String GET_PATIENT_PROGRAMS = "Get Patient Programs";
     public static final String GET_PATIENTS = "Get Patients";

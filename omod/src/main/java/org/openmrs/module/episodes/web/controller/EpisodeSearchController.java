@@ -9,6 +9,8 @@
 
 package org.openmrs.module.episodes.web.controller;
 
+import org.openmrs.api.APIAuthenticationException;
+import org.openmrs.api.context.ContextAuthenticationException;
 import org.openmrs.module.episodes.service.SearchService;
 import org.openmrs.module.episodes.search.SearchServiceRegistry;
 import org.openmrs.module.episodes.search.model.ContextSearchResponse;
@@ -16,6 +18,7 @@ import org.openmrs.module.episodes.search.model.ErrorSearchResponse;
 import org.openmrs.module.episodes.search.model.SearchRequest;
 import org.openmrs.module.episodes.search.exceptions.EpisodeSearchException;
 import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -54,6 +57,14 @@ public class EpisodeSearchController {
         } catch (InvalidSearchCriteriaException e) {
             return ResponseEntity.status(e.getStatus().getCode())
                     .body(new ErrorSearchResponse(entity, e.getStatus().getCode(), e.getMessages()));
+        } catch (ContextAuthenticationException e) {
+            String message = e.getMessage() != null ? e.getMessage() : "Authentication required";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorSearchResponse(entity, HttpStatus.UNAUTHORIZED.value(), message));
+        } catch (APIAuthenticationException e) {
+            String message = e.getMessage() != null ? e.getMessage() : "Access denied";
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorSearchResponse(entity, HttpStatus.FORBIDDEN.value(), message));
         } catch (RuntimeException e) {
             EpisodeSearchException searchException =
                     new EpisodeSearchException("Unexpected error during episode search", e);

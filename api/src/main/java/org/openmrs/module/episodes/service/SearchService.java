@@ -22,7 +22,6 @@ public interface SearchService {
     @Authorized(value = {
             Privileges.GET_EPISODES,
             Privileges.GET_PROGRAMS,
-            Privileges.GET_PROVIDER_ATTRIBUTE_TYPES,
             Privileges.GET_PATIENT_PROGRAM_ATTRIBUTE_TYPES,
             Privileges.GET_PATIENT_PROGRAMS,
             Privileges.GET_PATIENTS,
