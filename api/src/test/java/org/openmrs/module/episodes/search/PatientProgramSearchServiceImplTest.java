@@ -19,8 +19,8 @@
     import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
     import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
     import org.openmrs.module.episodes.search.impl.PatientProgramSearchServiceImpl;
-    import org.openmrs.module.episodes.search.model.SearchCondition;
-    import org.openmrs.module.episodes.search.model.SearchRequest;
+    import org.bahmni.search.model.SearchCondition;
+    import org.bahmni.search.model.SearchRequest;
     import org.openmrs.module.episodes.search.validation.CriteriaValidator;
 
     import java.util.Collections;
@@ -77,11 +77,6 @@
             when(patientProgramSearchDAO.search(any(SearchCondition.class))).thenReturn(Collections.emptyList());
 
             assertThat(searchService.search(validRequest()).getResults().size(), is(0));
-        }
-
-        @Test
-        public void shouldReturnPatientProgramEntity() {
-            assertThat(searchService.getEntity(), is("patientProgram"));
         }
 
         private SearchRequest validRequest() {

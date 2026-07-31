@@ -9,7 +9,7 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.openmrs.module.episodes.service.SearchService;
+import org.openmrs.module.episodes.service.EpisodeSearchService;
 
 import org.junit.Test;
 import org.openmrs.Location;
@@ -23,9 +23,9 @@ import org.openmrs.api.PersonService;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.search.model.SearchCondition;
-import org.openmrs.module.episodes.search.model.SearchRequest;
-import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
+import org.bahmni.search.model.SearchCondition;
+import org.bahmni.search.model.SearchRequest;
+import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.service.EpisodeService;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
     private static final String DATE_TO = "2024-12-31T23:59:59.000+0000";
 
     @Autowired
-    private SearchService searchService;
+    private EpisodeSearchService searchService;
 
     @Autowired
     private EpisodeService episodeService;

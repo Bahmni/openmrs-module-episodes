@@ -15,8 +15,8 @@ import org.junit.rules.ExpectedException;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
 import org.openmrs.module.episodes.search.builder.QueryContext;
-import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
-import org.openmrs.module.episodes.search.model.SearchCondition;
+import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
+import org.bahmni.search.model.SearchCondition;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;

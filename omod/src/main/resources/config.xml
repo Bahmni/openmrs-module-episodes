@@ -15,6 +15,7 @@
 	<require_version>@openmrs.platform.version@</require_version>
 	<require_modules>
 		<require_module>org.openmrs.module.webservices.rest</require_module>
+		<require_module>org.bahmni.module.appointments</require_module>
 	</require_modules>
 
 	<privilege>

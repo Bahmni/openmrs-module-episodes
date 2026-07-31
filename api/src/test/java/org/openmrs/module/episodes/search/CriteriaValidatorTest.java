@@ -9,10 +9,10 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.openmrs.module.episodes.search.model.SearchCondition;
+import org.bahmni.search.model.SearchCondition;
 import org.openmrs.module.episodes.search.validation.CriteriaValidator;
-import org.openmrs.module.episodes.search.model.SearchRequest;
-import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
+import org.bahmni.search.model.SearchRequest;
+import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
 
 import org.junit.Rule;
 import org.junit.Test;

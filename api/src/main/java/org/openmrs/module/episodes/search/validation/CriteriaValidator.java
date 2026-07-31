@@ -9,10 +9,10 @@
 
 package org.openmrs.module.episodes.search.validation;
 
-import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
-import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
-import org.openmrs.module.episodes.search.model.SearchCondition;
-import org.openmrs.module.episodes.search.model.SearchRequest;
+import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
+import org.bahmni.search.exceptions.SearchResponseErrorStatus;
+import org.bahmni.search.model.SearchCondition;
+import org.bahmni.search.model.SearchRequest;
 
 import java.util.ArrayList;
 import java.util.Collections;

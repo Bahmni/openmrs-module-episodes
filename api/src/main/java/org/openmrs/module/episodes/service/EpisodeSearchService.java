@@ -9,15 +9,13 @@
 
 package org.openmrs.module.episodes.service;
 
+import org.bahmni.search.model.ContextSearchResponse;
+import org.bahmni.search.model.SearchRequest;
 import org.openmrs.annotation.Authorized;
 import org.openmrs.module.episodes.constants.Privileges;
-import org.openmrs.module.episodes.search.model.ContextSearchResponse;
-import org.openmrs.module.episodes.search.model.SearchRequest;
 
 
-public interface SearchService {
-
-    String getEntity();
+public interface EpisodeSearchService {
 
     @Authorized(value = {
             Privileges.GET_EPISODES,

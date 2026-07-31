@@ -9,8 +9,8 @@
 
 package org.openmrs.module.episodes.search.builder;
 
-import org.openmrs.module.episodes.search.model.ConditionOperator;
-import org.openmrs.module.episodes.search.model.FieldComparator;
+import org.bahmni.search.model.ConditionOperator;
+import org.bahmni.search.model.FieldComparator;
 
 import javax.persistence.criteria.Predicate;
 

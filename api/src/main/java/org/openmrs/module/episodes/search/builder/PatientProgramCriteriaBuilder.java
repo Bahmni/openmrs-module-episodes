@@ -11,12 +11,12 @@ package org.openmrs.module.episodes.search.builder;
 
 import org.openmrs.module.episodes.search.SearchKeyConstants;
 import org.openmrs.module.episodes.search.SearchFields;
-import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
-import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
-import org.openmrs.module.episodes.search.model.ConditionOperator;
-import org.openmrs.module.episodes.search.model.FieldComparator;
-import org.openmrs.module.episodes.search.model.FieldType;
-import org.openmrs.module.episodes.search.model.SearchCondition;
+import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
+import org.bahmni.search.exceptions.SearchResponseErrorStatus;
+import org.bahmni.search.model.ConditionOperator;
+import org.bahmni.search.model.FieldComparator;
+import org.bahmni.search.model.FieldType;
+import org.bahmni.search.model.SearchCondition;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;

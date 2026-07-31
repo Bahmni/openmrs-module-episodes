@@ -53,15 +53,8 @@
 		</property>
 	</bean>
 
-	<bean id="searchServiceRegistry" class="org.openmrs.module.episodes.search.SearchServiceRegistry">
-		<constructor-arg name="services">
-			<list>
-				<ref bean="patientProgramSearchService"/>
-			</list>
-		</constructor-arg>
-	</bean>
-
 	<bean id="episodeDao" class="org.openmrs.module.episodes.dao.impl.EpisodeDAOImpl">
+
 		<constructor-arg name="sessionFactory"  ref="sessionFactory"/>
 	</bean>
 	<bean id="episodeAttributeTypeDao" class="org.openmrs.module.episodes.dao.impl.EpisodeAttributeTypeDaoImpl">
