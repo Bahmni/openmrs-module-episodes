@@ -12,9 +12,9 @@ package org.openmrs.module.episodes.dao.impl;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.openmrs.module.episodes.Episode;
+import org.openmrs.module.episodes.search.builder.EpisodeQueryContext;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
-import org.openmrs.module.episodes.search.builder.QueryContext;
 import org.bahmni.search.model.SearchCondition;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -59,7 +59,7 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         predicates.add(cb.isFalse(root.get("voided")));
         predicates.add(cb.isFalse(patientProgram.get("voided")));
 
-        QueryContext context = new QueryContext(cb, root, patientProgram, predicates);
+        EpisodeQueryContext context = new EpisodeQueryContext(cb, root, patientProgram, predicates);
         criteriaBuilder.apply(context, searchCriteria);
         query.select(root).distinct(true).where(predicates.toArray(new Predicate[0]));
 

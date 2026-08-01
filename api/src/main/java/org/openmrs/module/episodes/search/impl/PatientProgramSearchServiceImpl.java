@@ -13,11 +13,11 @@ import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
-import org.bahmni.search.model.ContextSearchResponse;
-import org.bahmni.search.model.DefaultSearchResponse;
-import org.openmrs.module.episodes.search.validation.CriteriaValidator;
+import org.openmrs.module.episodes.search.dto.EpisodeSearchResponse;
+import org.openmrs.module.episodes.search.validation.SearchCriteriaValidator;
+
 import org.openmrs.module.episodes.service.EpisodeSearchService;
-import org.bahmni.search.model.SearchRequest;
+import org.openmrs.module.episodes.search.dto.SearchRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +32,11 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
     private static final String ENTITY = "patientProgram";
 
     private final PatientProgramSearchDAO patientProgramSearchDAO;
-    private final CriteriaValidator validator;
+    private final SearchCriteriaValidator validator;
     private final PatientProgramResponseBuilder responseBuilder;
 
     public PatientProgramSearchServiceImpl(PatientProgramSearchDAO patientProgramSearchDAO,
-            CriteriaValidator validator,
+            SearchCriteriaValidator validator,
             PatientProgramResponseBuilder responseBuilder) {
         this.patientProgramSearchDAO = patientProgramSearchDAO;
         this.validator = validator;
@@ -44,14 +44,14 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
     }
 
     @Override
-    public ContextSearchResponse search(SearchRequest request) {
+    public EpisodeSearchResponse search(SearchRequest request) {
         log.debug("Searching patient programs for entity '{}'", request.getEntity());
         validator.validateRequest(request);
 
         List<Episode> episodes = patientProgramSearchDAO.search(request.getCriteria());
         if (episodes.isEmpty()) {
             log.debug("No episodes found for the given criteria");
-            return new DefaultSearchResponse(ENTITY, new ArrayList<>());
+            return EpisodeSearchResponse.success(ENTITY, new ArrayList<>());
         }
 
         List<Map<String, Object>> results = new ArrayList<>();
@@ -63,6 +63,7 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
         }
 
         log.debug("Returning {} patient program results", results.size());
-        return new DefaultSearchResponse(ENTITY, results);
+        return EpisodeSearchResponse.success(ENTITY, results);
     }
+
 }

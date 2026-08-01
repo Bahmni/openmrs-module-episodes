@@ -14,8 +14,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
-import org.openmrs.module.episodes.search.builder.QueryContext;
+import org.openmrs.module.episodes.search.builder.EpisodeQueryContext;
 import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
+
 import org.bahmni.search.model.SearchCondition;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -37,7 +38,7 @@ public class PatientProgramCriteriaBuilderTest {
 
     private final PatientProgramCriteriaBuilder criteriaBuilder = new PatientProgramCriteriaBuilder();
 
-    private final QueryContext queryContext = createMockQueryContext();
+    private final EpisodeQueryContext queryContext = createMockQueryContext();
 
     @Test
     public void shouldThrowForUnknownSearchField() {
@@ -65,12 +66,12 @@ public class PatientProgramCriteriaBuilderTest {
     }
 
     @SuppressWarnings("unchecked")
-    private QueryContext createMockQueryContext() {
+    private EpisodeQueryContext createMockQueryContext() {
         CriteriaBuilder mockCriteriaBuilder = mock(CriteriaBuilder.class);
         Root<Episode> mockEpisodeRoot = mock(Root.class);
         From<?, ?> mockPatientProgramJoin = mock(From.class);
         List<Predicate> predicates = new ArrayList<>();
-        return new QueryContext(mockCriteriaBuilder, mockEpisodeRoot, mockPatientProgramJoin, predicates);
+        return new EpisodeQueryContext(mockCriteriaBuilder, mockEpisodeRoot, mockPatientProgramJoin, predicates);
     }
 
     private SearchCondition createLeafCriteria(String fieldName, String comparator, String value) {

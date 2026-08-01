@@ -9,8 +9,8 @@
 
 package org.openmrs.module.episodes.service;
 
-import org.bahmni.search.model.ContextSearchResponse;
-import org.bahmni.search.model.SearchRequest;
+import org.openmrs.module.episodes.search.dto.EpisodeSearchResponse;
+import org.openmrs.module.episodes.search.dto.SearchRequest;
 import org.openmrs.annotation.Authorized;
 import org.openmrs.module.episodes.constants.Privileges;
 
@@ -25,5 +25,6 @@ public interface EpisodeSearchService {
             Privileges.GET_PATIENTS,
             Privileges.GET_PERSON_ATTRIBUTE_TYPES
     }, requireAll = true)
-    ContextSearchResponse search(SearchRequest request);
+    EpisodeSearchResponse search(SearchRequest request);
 }
+

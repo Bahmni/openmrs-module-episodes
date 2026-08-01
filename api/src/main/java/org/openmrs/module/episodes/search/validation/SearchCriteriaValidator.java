@@ -12,23 +12,38 @@ package org.openmrs.module.episodes.search.validation;
 import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
 import org.bahmni.search.exceptions.SearchResponseErrorStatus;
 import org.bahmni.search.model.SearchCondition;
-import org.bahmni.search.model.SearchRequest;
+import org.openmrs.module.episodes.search.dto.SearchRequest;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class CriteriaValidator {
+public class SearchCriteriaValidator {
 
     public void validateRequest(SearchRequest request) {
         if (request.getCriteria() == null) {
-            throw new InvalidSearchCriteriaException("Request must include 'criteria'", SearchResponseErrorStatus.BAD_REQUEST);
+            throw new InvalidSearchCriteriaException("Request must include 'criteria'",
+                    SearchResponseErrorStatus.BAD_REQUEST);
         }
         List<String> errors = validateCondition(request.getCriteria());
         if (!errors.isEmpty()) {
             throw new InvalidSearchCriteriaException(errors, SearchResponseErrorStatus.BAD_REQUEST);
         }
     }
+
+    public void validateEntity(String entity, String supportedEntity) {
+        if (entity == null || entity.isEmpty()) {
+            throw new InvalidSearchCriteriaException(
+                    "Request must include 'entity'", SearchResponseErrorStatus.BAD_REQUEST);
+        }
+        if (!supportedEntity.equalsIgnoreCase(entity)) {
+            throw new InvalidSearchCriteriaException(
+                    "Entity '" + entity + "' is not supported. Supported entities: ["
+                            + supportedEntity + "]",
+                    SearchResponseErrorStatus.BAD_REQUEST);
+        }
+    }
+
 
     private List<String> validateCondition(SearchCondition condition) {
         if (condition.isLeaf()) {
@@ -43,7 +58,8 @@ public class CriteriaValidator {
     private List<String> validateLeaf(SearchCondition leaf) {
         List<String> errors = new ArrayList<>();
         if (leaf.getComparator() == null) {
-            errors.add("Leaf condition for field '" + leaf.getField() + "' is missing 'comparator'. Supported: eq, gt, lt");
+            errors.add("Leaf condition for field '" + leaf.getField()
+                    + "' is missing 'comparator'. Supported: eq, gt, lt");
         }
         if (leaf.getValue() == null || leaf.getValue().isEmpty()) {
             errors.add("Leaf condition for field '" + leaf.getField() + "' is missing 'value'");
@@ -53,7 +69,8 @@ public class CriteriaValidator {
 
     private List<String> validateGroup(SearchCondition group) {
         if (group.getConditions() == null || group.getConditions().isEmpty()) {
-            return Collections.singletonList("A group condition must have at least one condition in 'conditions'");
+            return Collections.singletonList(
+                    "A group condition must have at least one condition in 'conditions'");
         }
         List<String> errors = new ArrayList<>();
         for (SearchCondition child : group.getConditions()) {

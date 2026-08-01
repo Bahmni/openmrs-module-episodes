@@ -23,6 +23,8 @@
   		    http://www.springframework.org/schema/util
   		    http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
+	<bean id="episodeCriteriaValidator" class="org.openmrs.module.episodes.search.validation.SearchCriteriaValidator"/>
+
 	<bean id="patientProgramSearchDao" class="org.openmrs.module.episodes.dao.impl.PatientProgramSearchDAOImpl">
 		<constructor-arg name="sessionFactory" ref="sessionFactory"/>
 		<constructor-arg name="criteriaBuilder">
@@ -37,14 +39,14 @@
 		<property name="target">
 			<bean class="org.openmrs.module.episodes.search.impl.PatientProgramSearchServiceImpl">
 				<constructor-arg name="patientProgramSearchDAO" ref="patientProgramSearchDao"/>
-				<constructor-arg name="validator">
-					<bean class="org.openmrs.module.episodes.search.validation.CriteriaValidator"/>
-				</constructor-arg>
+				<constructor-arg name="validator" ref="episodeCriteriaValidator"/>
 			<constructor-arg name="responseBuilder">
 				<bean class="org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder"/>
 			</constructor-arg>
 			</bean>
 		</property>
+
+
 		<property name="preInterceptors">
 			<ref bean="serviceInterceptors"/>
 		</property>

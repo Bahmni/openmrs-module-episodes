@@ -24,7 +24,7 @@ import org.openmrs.api.APIAuthenticationException;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.bahmni.search.model.SearchCondition;
-import org.bahmni.search.model.SearchRequest;
+import org.openmrs.module.episodes.search.dto.SearchRequest;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 

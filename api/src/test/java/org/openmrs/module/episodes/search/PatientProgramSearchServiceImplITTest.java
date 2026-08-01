@@ -24,7 +24,7 @@ import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.module.episodes.Episode;
 import org.bahmni.search.model.SearchCondition;
-import org.bahmni.search.model.SearchRequest;
+import org.openmrs.module.episodes.search.dto.SearchRequest;
 import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
 import org.openmrs.module.episodes.service.EpisodeService;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
