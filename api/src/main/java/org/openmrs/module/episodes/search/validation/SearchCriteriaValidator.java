@@ -59,7 +59,7 @@ public class SearchCriteriaValidator {
         List<String> errors = new ArrayList<>();
         if (leaf.getComparator() == null) {
             errors.add("Leaf condition for field '" + leaf.getField()
-                    + "' is missing 'comparator'. Supported: eq, gt, lt");
+                    + "' is missing 'comparator'. Supported: eq, gt, lt, ge, le");
         }
         if (leaf.getValue() == null || leaf.getValue().isEmpty()) {
             errors.add("Leaf condition for field '" + leaf.getField() + "' is missing 'value'");
