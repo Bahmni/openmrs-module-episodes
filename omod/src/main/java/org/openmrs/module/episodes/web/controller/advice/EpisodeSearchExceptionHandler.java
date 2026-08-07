@@ -11,6 +11,7 @@ package org.openmrs.module.episodes.web.controller.advice;
 
 import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
 import org.bahmni.search.exceptions.SearchException;
+import org.bahmni.search.exceptions.SearchResponseErrorStatus;
 import org.openmrs.api.APIAuthenticationException;
 import org.openmrs.api.context.ContextAuthenticationException;
 import org.openmrs.module.episodes.search.dto.EpisodeSearchResponse;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -37,6 +39,31 @@ public class EpisodeSearchExceptionHandler {
     public ResponseEntity<EpisodeSearchResponse> handleInvalidSearchCriteria(
             InvalidSearchCriteriaException e, WebRequest webRequest) {
         return errorResponse(currentEntity(webRequest), e.getStatus().getCode(), e.getMessages());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseBody
+    public ResponseEntity<EpisodeSearchResponse> handleMalformedRequest(
+            HttpMessageNotReadableException e, WebRequest webRequest) {
+        InvalidSearchCriteriaException invalidSearchCriteriaException = findInvalidSearchCriteriaCause(e);
+        if (invalidSearchCriteriaException != null) {
+            return errorResponse(currentEntity(webRequest),
+                    invalidSearchCriteriaException.getStatus().getCode(),
+                    invalidSearchCriteriaException.getMessages());
+        }
+        return errorResponse(currentEntity(webRequest), SearchResponseErrorStatus.BAD_REQUEST.getCode(),
+                "Malformed request body");
+    }
+
+    private InvalidSearchCriteriaException findInvalidSearchCriteriaCause(Throwable throwable) {
+        Throwable cause = throwable;
+        while (cause != null) {
+            if (cause instanceof InvalidSearchCriteriaException) {
+                return (InvalidSearchCriteriaException) cause;
+            }
+            cause = cause.getCause();
+        }
+        return null;
     }
 
     @ExceptionHandler(ContextAuthenticationException.class)
