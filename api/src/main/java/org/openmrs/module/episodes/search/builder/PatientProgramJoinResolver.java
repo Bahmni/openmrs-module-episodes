@@ -9,7 +9,8 @@
 
 package org.openmrs.module.episodes.search.builder;
 
-import javax.persistence.criteria.Fetch;
+import org.bahmni.search.builder.JoinResolvers;
+
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -18,27 +19,27 @@ public class PatientProgramJoinResolver {
 
     private static final String VOIDED = "voided";
 
-    From<?, ?> joinCareManager(QueryContext queryContext) {
+    From<?, ?> joinCareManager(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("careManager",
-                key -> findExistingFetchOrJoin(queryContext.episodeRoot, "careManager", JoinType.INNER));
+                key -> JoinResolvers.findExistingFetchOrJoin(queryContext.episodeRoot, "careManager", JoinType.INNER));
     }
 
-    From<?, ?> joinProgram(QueryContext queryContext) {
+    From<?, ?> joinProgram(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("program",
-                key -> findExistingFetchOrJoin(queryContext.patientProgramJoin, "program", JoinType.INNER));
+                key -> JoinResolvers.findExistingFetchOrJoin(queryContext.patientProgramJoin, "program", JoinType.INNER));
     }
 
-    From<?, ?> joinProgramConcept(QueryContext queryContext) {
+    From<?, ?> joinProgramConcept(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("programConcept",
-                key -> findExistingFetchOrJoin(joinProgram(queryContext), "concept", JoinType.INNER));
+                key -> JoinResolvers.findExistingFetchOrJoin(joinProgram(queryContext), "concept", JoinType.INNER));
     }
 
-    From<?, ?> joinLocation(QueryContext queryContext) {
+    From<?, ?> joinLocation(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("location",
-                key -> findExistingFetchOrJoin(queryContext.patientProgramJoin, "location", JoinType.INNER));
+                key -> JoinResolvers.findExistingFetchOrJoin(queryContext.patientProgramJoin, "location", JoinType.INNER));
     }
 
-    From<?, ?> joinStates(QueryContext queryContext) {
+    From<?, ?> joinStates(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("patientState", key -> {
             Join<?, ?> statesJoin = queryContext.patientProgramJoin.join("states", JoinType.INNER);
             queryContext.predicates.add(queryContext.criteriaBuilder.isFalse(statesJoin.get(VOIDED)));
@@ -46,19 +47,19 @@ public class PatientProgramJoinResolver {
         });
     }
 
-    From<?, ?> joinStateConcept(QueryContext queryContext) {
+    From<?, ?> joinStateConcept(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("stateConcept", key -> {
             Join<?, ?> workflowStateJoin = joinStates(queryContext).join("state", JoinType.INNER);
             return workflowStateJoin.join("concept", JoinType.INNER);
         });
     }
 
-    From<?, ?> joinPatient(QueryContext queryContext) {
+    From<?, ?> joinPatient(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("patient",
-                key -> findExistingFetchOrJoin(queryContext.patientProgramJoin, "patient", JoinType.INNER));
+                key -> JoinResolvers.findExistingFetchOrJoin(queryContext.patientProgramJoin, "patient", JoinType.INNER));
     }
 
-    From<?, ?> joinPatientIdentifiers(QueryContext queryContext) {
+    From<?, ?> joinPatientIdentifiers(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("patientIdentifier", key -> {
             Join<?, ?> identifiersJoin = joinPatient(queryContext).join("identifiers", JoinType.INNER);
             queryContext.predicates.add(queryContext.criteriaBuilder.isFalse(identifiersJoin.get(VOIDED)));
@@ -66,12 +67,12 @@ public class PatientProgramJoinResolver {
         });
     }
 
-    From<?, ?> joinIdentifierType(QueryContext queryContext) {
+    From<?, ?> joinIdentifierType(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("identifierType",
                 key -> joinPatientIdentifiers(queryContext).join("identifierType", JoinType.INNER));
     }
 
-    From<?, ?> joinAttributes(QueryContext queryContext) {
+    From<?, ?> joinAttributes(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("programAttribute", key -> {
             Join<?, ?> attributesJoin = queryContext.patientProgramJoin.join("attributes", JoinType.INNER);
             queryContext.predicates.add(queryContext.criteriaBuilder.isFalse(attributesJoin.get(VOIDED)));
@@ -79,18 +80,8 @@ public class PatientProgramJoinResolver {
         });
     }
 
-    From<?, ?> joinAttributeType(QueryContext queryContext) {
+    From<?, ?> joinAttributeType(EpisodeQueryContext queryContext) {
         return queryContext.joinCache.computeIfAbsent("programAttributeType",
                 key -> joinAttributes(queryContext).join("attributeType", JoinType.INNER));
-    }
-
-    @SuppressWarnings("unchecked")
-    private From<?, ?> findExistingFetchOrJoin(From<?, ?> parent, String attributeName, JoinType joinType) {
-        for (Fetch<?, ?> fetch : parent.getFetches()) {
-            if (attributeName.equals(fetch.getAttribute().getName())) {
-                return (From<?, ?>) fetch;
-            }
-        }
-        return parent.join(attributeName, joinType);
     }
 }

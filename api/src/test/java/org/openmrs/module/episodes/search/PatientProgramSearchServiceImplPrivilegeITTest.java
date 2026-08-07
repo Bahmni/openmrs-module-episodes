@@ -9,7 +9,7 @@
 
 package org.openmrs.module.episodes.search;
 
-import org.openmrs.module.episodes.service.SearchService;
+import org.openmrs.module.episodes.service.EpisodeSearchService;
 
 import org.junit.After;
 import org.junit.Before;
@@ -23,8 +23,8 @@ import org.openmrs.annotation.Authorized;
 import org.openmrs.api.APIAuthenticationException;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.episodes.search.model.SearchCondition;
-import org.openmrs.module.episodes.search.model.SearchRequest;
+import org.bahmni.search.model.SearchCondition;
+import org.openmrs.module.episodes.search.dto.SearchRequest;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,17 +45,17 @@ public class PatientProgramSearchServiceImplPrivilegeITTest extends BaseModuleCo
 
     private static String[] resolveRequiredPrivileges() {
         try {
-            return SearchService.class
+            return EpisodeSearchService.class
                     .getMethod("search", SearchRequest.class)
                     .getAnnotation(Authorized.class)
                     .value();
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not resolve @Authorized privileges from SearchService", e);
+            throw new RuntimeException("Could not resolve @Authorized privileges from EpisodeSearchService", e);
         }
     }
 
     @Autowired
-    private SearchService searchService;
+    private EpisodeSearchService searchService;
 
     @Autowired
     private UserService userService;

@@ -10,7 +10,7 @@
 package org.openmrs.module.episodes.dao;
 
 import org.openmrs.module.episodes.Episode;
-import org.openmrs.module.episodes.search.model.SearchCondition;
+import org.bahmni.search.model.SearchCondition;
 
 import java.util.List;
 

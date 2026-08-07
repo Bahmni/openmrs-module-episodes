@@ -7,10 +7,11 @@
  * graphic logo is a trademark of OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.model;
+package org.openmrs.module.episodes.search.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.bahmni.search.model.SearchCondition;
 
 @Getter
 @Setter
@@ -18,4 +19,5 @@ public class SearchRequest {
 
     private String entity;
     private SearchCondition criteria;
+
 }

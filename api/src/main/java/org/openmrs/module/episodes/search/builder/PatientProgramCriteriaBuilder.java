@@ -9,14 +9,15 @@
 
 package org.openmrs.module.episodes.search.builder;
 
+import org.bahmni.search.builder.SearchFieldPredicate;
 import org.openmrs.module.episodes.search.SearchKeyConstants;
 import org.openmrs.module.episodes.search.SearchFields;
-import org.openmrs.module.episodes.search.exceptions.InvalidSearchCriteriaException;
-import org.openmrs.module.episodes.search.exceptions.SearchResponseErrorStatus;
-import org.openmrs.module.episodes.search.model.ConditionOperator;
-import org.openmrs.module.episodes.search.model.FieldComparator;
-import org.openmrs.module.episodes.search.model.FieldType;
-import org.openmrs.module.episodes.search.model.SearchCondition;
+import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
+import org.bahmni.search.exceptions.SearchResponseErrorStatus;
+import org.bahmni.search.model.ConditionOperator;
+import org.bahmni.search.model.FieldComparator;
+import org.bahmni.search.model.FieldType;
+import org.bahmni.search.model.SearchCondition;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
@@ -45,7 +46,7 @@ public class PatientProgramCriteriaBuilder {
         this.fieldRegistry = Collections.unmodifiableMap(buildFieldRegistry());
     }
 
-    public void apply(QueryContext queryContext, SearchCondition criteria) {
+    public void apply(EpisodeQueryContext queryContext, SearchCondition criteria) {
         Predicate predicate = buildCriterion(queryContext, criteria);
         if (predicate != null) {
             queryContext.predicates.add(predicate);
@@ -86,19 +87,20 @@ public class PatientProgramCriteriaBuilder {
         return registry;
     }
 
-    private SearchFieldPredicate createFieldPredicate(Function<QueryContext, From<?, ?>> joinFunction,
+    private SearchFieldPredicate createFieldPredicate(Function<EpisodeQueryContext, From<?, ?>> joinFunction,
                                                      String propertyName, FieldType fieldType) {
         return (queryContext, fieldName, comparator, value, operator) -> {
             validateComparator(fieldName, comparator, fieldType);
-            Path<?> fieldPath = joinFunction.apply(queryContext).get(propertyName);
+            Path<?> fieldPath = joinFunction.apply((EpisodeQueryContext) queryContext).get(propertyName);
             return buildPredicate(queryContext.criteriaBuilder, fieldPath, comparator, value);
         };
     }
 
-    private Predicate buildIdentifierKindPredicate(QueryContext queryContext, String fieldName,
+    private Predicate buildIdentifierKindPredicate(org.bahmni.search.builder.QueryContext<?> ctx, String fieldName,
                                                     FieldComparator comparator, String value,
                                                     ConditionOperator operator) {
         validateComparator(fieldName, comparator, FieldType.STRING);
+        EpisodeQueryContext queryContext = (EpisodeQueryContext) ctx;
         From<?, ?> identifierTypeJoin = joinResolver.joinIdentifierType(queryContext);
 
         Predicate uuidMatch = queryContext.criteriaBuilder.equal(identifierTypeJoin.get(SearchKeyConstants.COMMON_UUID), value);
@@ -110,7 +112,7 @@ public class PatientProgramCriteriaBuilder {
                 : queryContext.criteriaBuilder.or(uuidMatch, nameMatch);
     }
 
-    private Predicate buildCriterion(QueryContext queryContext, SearchCondition criteria) {
+    private Predicate buildCriterion(EpisodeQueryContext queryContext, SearchCondition criteria) {
         if (criteria == null) {
             return null;
         }
@@ -120,7 +122,7 @@ public class PatientProgramCriteriaBuilder {
         return combineChildPredicates(queryContext, criteria);
     }
 
-    private Predicate buildLeafCriterion(QueryContext queryContext, SearchCondition leafCriteria) {
+    private Predicate buildLeafCriterion(EpisodeQueryContext queryContext, SearchCondition leafCriteria) {
         String fieldName = leafCriteria.getField();
         FieldComparator comparator = leafCriteria.getComparator();
 
@@ -135,7 +137,7 @@ public class PatientProgramCriteriaBuilder {
                 leafCriteria.getValue(), leafCriteria.getOperator());
     }
 
-    private Predicate combineChildPredicates(QueryContext queryContext, SearchCondition parentCriteria) {
+    private Predicate combineChildPredicates(EpisodeQueryContext queryContext, SearchCondition parentCriteria) {
         List<Predicate> childPredicates = new ArrayList<>();
         if (parentCriteria.getConditions() != null) {
             for (SearchCondition childCriteria : parentCriteria.getConditions()) {

@@ -9,15 +9,13 @@
 
 package org.openmrs.module.episodes.service;
 
+import org.openmrs.module.episodes.search.dto.EpisodeSearchResponse;
+import org.openmrs.module.episodes.search.dto.SearchRequest;
 import org.openmrs.annotation.Authorized;
 import org.openmrs.module.episodes.constants.Privileges;
-import org.openmrs.module.episodes.search.model.ContextSearchResponse;
-import org.openmrs.module.episodes.search.model.SearchRequest;
 
 
-public interface SearchService {
-
-    String getEntity();
+public interface EpisodeSearchService {
 
     @Authorized(value = {
             Privileges.GET_EPISODES,
@@ -27,5 +25,6 @@ public interface SearchService {
             Privileges.GET_PATIENTS,
             Privileges.GET_PERSON_ATTRIBUTE_TYPES
     }, requireAll = true)
-    ContextSearchResponse search(SearchRequest request);
+    EpisodeSearchResponse search(SearchRequest request);
 }
+
