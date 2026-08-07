@@ -1,23 +1,18 @@
-/*
+/**
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://www.bahmni.org/license/mplv2hd.
  *
- * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
- * graphic logo is a trademark of OpenMRS Inc.
+ * Copyright (C) 2026 OpenMRS Inc.
  */
 
-package org.openmrs.module.episodes.search.model;
+package org.openmrs.module.episodes.search.dto;
 
 import lombok.Getter;
 
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Represents an error in a search response envelope.
- * Contains the HTTP status code and one or more human-readable error messages.
- */
 @Getter
 public class SearchError {
 
@@ -32,4 +27,5 @@ public class SearchError {
     public SearchError(int status, String message) {
         this(status, Collections.singletonList(message));
     }
+
 }

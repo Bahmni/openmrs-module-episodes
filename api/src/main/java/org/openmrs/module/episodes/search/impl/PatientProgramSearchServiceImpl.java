@@ -13,11 +13,11 @@ import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
-import org.openmrs.module.episodes.search.model.ContextSearchResponse;
-import org.openmrs.module.episodes.search.model.EpisodeSearchResponse;
-import org.openmrs.module.episodes.search.validation.CriteriaValidator;
-import org.openmrs.module.episodes.service.SearchService;
-import org.openmrs.module.episodes.search.model.SearchRequest;
+import org.openmrs.module.episodes.search.dto.EpisodeSearchResponse;
+import org.openmrs.module.episodes.search.validation.SearchCriteriaValidator;
+
+import org.openmrs.module.episodes.service.EpisodeSearchService;
+import org.openmrs.module.episodes.search.dto.SearchRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,18 +25,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class PatientProgramSearchServiceImpl implements SearchService {
+public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
 
     private static final Logger log = LoggerFactory.getLogger(PatientProgramSearchServiceImpl.class);
 
     private static final String ENTITY = "patientProgram";
 
     private final PatientProgramSearchDAO patientProgramSearchDAO;
-    private final CriteriaValidator validator;
+    private final SearchCriteriaValidator validator;
     private final PatientProgramResponseBuilder responseBuilder;
 
     public PatientProgramSearchServiceImpl(PatientProgramSearchDAO patientProgramSearchDAO,
-            CriteriaValidator validator,
+            SearchCriteriaValidator validator,
             PatientProgramResponseBuilder responseBuilder) {
         this.patientProgramSearchDAO = patientProgramSearchDAO;
         this.validator = validator;
@@ -44,19 +44,14 @@ public class PatientProgramSearchServiceImpl implements SearchService {
     }
 
     @Override
-    public String getEntity() {
-        return ENTITY;
-    }
-
-    @Override
-    public ContextSearchResponse search(SearchRequest request) {
+    public EpisodeSearchResponse search(SearchRequest request) {
         log.debug("Searching patient programs for entity '{}'", request.getEntity());
         validator.validateRequest(request);
 
         List<Episode> episodes = patientProgramSearchDAO.search(request.getCriteria());
         if (episodes.isEmpty()) {
             log.debug("No episodes found for the given criteria");
-            return new EpisodeSearchResponse(ENTITY, new ArrayList<>());
+            return EpisodeSearchResponse.success(ENTITY, new ArrayList<>());
         }
 
         List<Map<String, Object>> results = new ArrayList<>();
@@ -68,6 +63,7 @@ public class PatientProgramSearchServiceImpl implements SearchService {
         }
 
         log.debug("Returning {} patient program results", results.size());
-        return new EpisodeSearchResponse(ENTITY, results);
+        return EpisodeSearchResponse.success(ENTITY, results);
     }
+
 }

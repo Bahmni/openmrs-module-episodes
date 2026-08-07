@@ -9,29 +9,27 @@
 
 package org.openmrs.module.episodes.search.builder;
 
+import org.bahmni.search.builder.QueryContext;
 import org.openmrs.module.episodes.Episode;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class QueryContext {
 
-    final CriteriaBuilder criteriaBuilder;
-    final Root<Episode> episodeRoot;
-    final From<?, ?> patientProgramJoin;
-    final List<Predicate> predicates;
-    final Map<String, From<?, ?>> joinCache = new HashMap<>();
+public class EpisodeQueryContext extends QueryContext<Episode> {
 
-    public QueryContext(CriteriaBuilder criteriaBuilder, Root<Episode> episodeRoot,
-                        From<?, ?> patientProgramJoin, List<Predicate> predicates) {
-        this.criteriaBuilder = criteriaBuilder;
+    public final Root<Episode> episodeRoot;
+    public final From<?, ?> patientProgramJoin;
+
+    public EpisodeQueryContext(CriteriaBuilder criteriaBuilder,
+                               Root<Episode> episodeRoot,
+                               From<?, ?> patientProgramJoin,
+                               List<Predicate> predicates) {
+        super(criteriaBuilder, episodeRoot, predicates);
         this.episodeRoot = episodeRoot;
         this.patientProgramJoin = patientProgramJoin;
-        this.predicates = predicates;
     }
 }
