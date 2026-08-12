@@ -79,6 +79,36 @@ public class PatientStateSelectionTest {
         assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(active, voidedActive)), is(active));
     }
 
+    @Test
+    public void shouldPreferHigherPatientStateIdWhenTwoEndedStatesShareSameEndDate() {
+        Date sharedEndDate = date(2023, 12, 31);
+        PatientState first = state(date(2023, 1, 1), sharedEndDate, 10);
+        PatientState second = state(date(2023, 6, 1), sharedEndDate, 20);
+
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(first, second)), is(second));
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(second, first)), is(second));
+    }
+
+    @Test
+    public void shouldPreferHigherPatientStateIdWhenTwoActiveStatesShareSameStartDate() {
+        Date sharedStartDate = date(2024, 1, 1);
+        PatientState first = state(sharedStartDate, null, 10);
+        PatientState second = state(sharedStartDate, null, 20);
+
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(first, second)), is(second));
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(second, first)), is(second));
+    }
+
+    @Test
+    public void shouldFallBackToFirstEncounteredWhenTiedStatesHaveNoPatientStateId() {
+        Date sharedEndDate = date(2023, 12, 31);
+        PatientState first = state(date(2023, 1, 1), sharedEndDate);
+        PatientState second = state(date(2023, 6, 1), sharedEndDate);
+
+        PatientState result = PatientProgramResponseBuilder.selectCurrentState(setOf(first, second));
+        assertThat(result, is(first));
+    }
+
     private PatientState state(Date startDate, Date endDate) {
         PatientState s = new PatientState();
         s.setStartDate(startDate);
@@ -86,6 +116,13 @@ public class PatientStateSelectionTest {
         s.setVoided(false);
         return s;
     }
+
+    private PatientState state(Date startDate, Date endDate, Integer patientStateId) {
+        PatientState s = state(startDate, endDate);
+        s.setPatientStateId(patientStateId);
+        return s;
+    }
+
 
     private Date date(int year, int month, int day) {
         Calendar cal = Calendar.getInstance();

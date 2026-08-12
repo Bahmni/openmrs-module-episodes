@@ -15,6 +15,9 @@ public final class SearchFields {
     public static final String EOC_END_DATE = "episodeOfCare.endDate";
     public static final String EOC_CARE_MANAGER = "episodeOfCare.careManager";
 
+    public static final String PROGRAM_ENROLLMENT_DATE = "program.dateEnrolled";
+    public static final String PROGRAM_COMPLETION_DATE = "program.dateCompleted";
+
     public static final String PROGRAM_UUID = "program.uuid";
     public static final String PROGRAM_TYPE = "program.type";
     public static final String PROGRAM_LOCATION = "location.uuid";

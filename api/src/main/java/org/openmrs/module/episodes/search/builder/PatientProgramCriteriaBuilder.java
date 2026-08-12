@@ -63,6 +63,11 @@ public class PatientProgramCriteriaBuilder {
         registry.put(SearchFields.EOC_CARE_MANAGER,
                 createFieldPredicate(joinResolver::joinCareManager, SearchKeyConstants.COMMON_UUID, FieldType.STRING));
 
+        registry.put(SearchFields.PROGRAM_ENROLLMENT_DATE,
+                createFieldPredicate(queryContext -> queryContext.patientProgramJoin, SearchKeyConstants.ENROLLMENT_DATE_ENROLLED, FieldType.DATE));
+        registry.put(SearchFields.PROGRAM_COMPLETION_DATE,
+                createFieldPredicate(queryContext -> queryContext.patientProgramJoin, SearchKeyConstants.ENROLLMENT_DATE_COMPLETED, FieldType.DATE));
+
         registry.put(SearchFields.PROGRAM_UUID,
                 createFieldPredicate(joinResolver::joinProgram, SearchKeyConstants.COMMON_UUID, FieldType.STRING));
         registry.put(SearchFields.PROGRAM_TYPE,
