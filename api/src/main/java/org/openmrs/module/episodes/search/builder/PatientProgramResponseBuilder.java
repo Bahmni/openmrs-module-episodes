@@ -198,7 +198,7 @@ public class PatientProgramResponseBuilder {
         List<PatientState> active = new ArrayList<>();
         List<PatientState> ended = new ArrayList<>();
         for (PatientState state : states) {
-            if (state.getVoided()) continue;
+            if (Boolean.TRUE.equals(state.getVoided())) continue;
             if (state.getEndDate() == null) active.add(state);
             else ended.add(state);
         }
@@ -209,7 +209,7 @@ public class PatientProgramResponseBuilder {
         PatientState latest = null;
         for (PatientState state : states) {
             if (state.getStartDate() == null) continue;
-            if (latest == null || state.getStartDate().after(latest.getStartDate())) {
+            if (latest == null || isMoreRecent(state.getStartDate(), latest.getStartDate(), state, latest)) {
                 latest = state;
             }
         }
@@ -220,10 +220,31 @@ public class PatientProgramResponseBuilder {
         if (states.isEmpty()) return null;
         PatientState latest = states.get(0);
         for (PatientState state : states) {
-            if (state.getEndDate().after(latest.getEndDate())) latest = state;
+            if (isMoreRecent(state.getEndDate(), latest.getEndDate(), state, latest)) {
+                latest = state;
+            }
         }
         return latest;
     }
+
+    private static boolean isMoreRecent(Date candidateDate, Date currentLatestDate,
+                                         PatientState candidate, PatientState currentLatest) {
+        int comparison = candidateDate.compareTo(currentLatestDate);
+        if (comparison != 0) {
+            return comparison > 0;
+        }
+        return isMoreRecentlyCreated(candidate, currentLatest);
+    }
+
+    private static boolean isMoreRecentlyCreated(PatientState candidate, PatientState currentLatest) {
+        Integer candidateId = candidate.getPatientStateId();
+        Integer currentLatestId = currentLatest.getPatientStateId();
+        if (candidateId == null || currentLatestId == null) {
+            return false;
+        }
+        return candidateId > currentLatestId;
+    }
+
 
     private String formatDate(Date date) {
         if (date == null) return null;
