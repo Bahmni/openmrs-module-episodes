@@ -16,5 +16,8 @@ import java.util.List;
 
 public interface PatientProgramSearchDAO {
 
-    List<Episode> search(SearchCondition criteria);
+    List<Episode> search(SearchCondition criteria, Long cursorId,
+                          String sortOrder, String direction, int limit);
+
+    long count(SearchCondition criteria);
 }

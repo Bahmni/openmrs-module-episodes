@@ -42,9 +42,7 @@ public class EpisodeSearchController {
     }
 
     @PostMapping(
-            value = "/search",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
+            value = "/search"
     )
     @ResponseBody
     public ResponseEntity<EpisodeSearchResponse> search(@RequestBody SearchRequest request, WebRequest webRequest) {
