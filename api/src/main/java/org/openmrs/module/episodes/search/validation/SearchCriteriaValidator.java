@@ -20,6 +20,6 @@ public class SearchCriteriaValidator {
 
     public void validateRequest(SearchRequest request) {
         SearchCriteriaValidationUtils.validateCriteria(request.getCriteria());
-        SearchCriteriaValidationUtils.validateMeta(request.getMeta());
+        SearchCriteriaValidationUtils.validateMeta(request.getEntity(), request.getMeta());
     }
 }

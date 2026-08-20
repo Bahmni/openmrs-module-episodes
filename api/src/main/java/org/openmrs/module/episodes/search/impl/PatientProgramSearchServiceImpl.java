@@ -14,15 +14,17 @@ import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
 import org.openmrs.module.episodes.search.dto.EpisodeSearchResponse;
-import org.openmrs.module.episodes.search.dto.SearchResponseMeta;
 import org.openmrs.module.episodes.search.validation.SearchCriteriaValidator;
 
 import org.openmrs.module.episodes.service.EpisodeSearchService;
 import org.openmrs.module.episodes.search.dto.SearchRequest;
-import org.bahmni.search.model.PaginationRequest;
-import org.bahmni.search.model.PaginationResponse;
 import org.bahmni.search.model.SearchRequestMeta;
+import org.bahmni.search.model.SearchResponseMeta;
+import org.bahmni.search.pagination.PageResult;
 import org.bahmni.search.pagination.PaginationHelper;
+import org.bahmni.search.pagination.ResolvedPagination;
+import org.openmrs.api.AdministrationService;
+import org.openmrs.api.context.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,16 +38,31 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
 
     private static final String ENTITY = "patientProgram";
 
+    private static final String GP_PAGINATION_DEFAULT_LIMIT = "bahmni.episodeSearch.pagination.defaultLimit";
+    private static final String GP_PAGINATION_MAX_LIMIT = "bahmni.episodeSearch.pagination.maxLimit";
+    private static final int FALLBACK_DEFAULT_LIMIT = 100;
+    private static final int FALLBACK_MAX_LIMIT = 500;
+
+
     private final PatientProgramSearchDAO patientProgramSearchDAO;
     private final SearchCriteriaValidator validator;
     private final PatientProgramResponseBuilder responseBuilder;
+    private final AdministrationService administrationService;
 
     public PatientProgramSearchServiceImpl(PatientProgramSearchDAO patientProgramSearchDAO,
             SearchCriteriaValidator validator,
             PatientProgramResponseBuilder responseBuilder) {
+        this(patientProgramSearchDAO, validator, responseBuilder, Context.getAdministrationService());
+    }
+
+    public PatientProgramSearchServiceImpl(PatientProgramSearchDAO patientProgramSearchDAO,
+            SearchCriteriaValidator validator,
+            PatientProgramResponseBuilder responseBuilder,
+            AdministrationService administrationService) {
         this.patientProgramSearchDAO = patientProgramSearchDAO;
         this.validator = validator;
         this.responseBuilder = responseBuilder;
+        this.administrationService = administrationService;
     }
 
     @Override
@@ -54,32 +71,29 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
         validator.validateRequest(request);
 
         SearchRequestMeta meta = request.getMeta();
-        PaginationRequest pagination = PaginationHelper.resolvePagination(meta);
-        int effectiveLimit = PaginationHelper.resolveEffectiveLimit(pagination.getLimit());
-        String sortOrder = PaginationHelper.resolveSortOrder(pagination.getSortOrder());
-        String direction = pagination.getDirection();
-        Long cursorId = PaginationHelper.decodeCursor(pagination.getCursor());
-        boolean isPrev = PaginationHelper.isPrevDirection(direction);
+        int defaultLimit = PaginationHelper.resolveGlobalProperty(
+                administrationService.getGlobalProperty(GP_PAGINATION_DEFAULT_LIMIT), FALLBACK_DEFAULT_LIMIT, GP_PAGINATION_DEFAULT_LIMIT);
+        int maxLimit = PaginationHelper.resolveGlobalProperty(
+                administrationService.getGlobalProperty(GP_PAGINATION_MAX_LIMIT), FALLBACK_MAX_LIMIT, GP_PAGINATION_MAX_LIMIT);
 
-        int fetchSize = effectiveLimit + 1;
-        List<Episode> rawEpisodes = patientProgramSearchDAO.search(
-                request.getCriteria(), cursorId, sortOrder, direction, fetchSize);
+        ResolvedPagination paginationData = PaginationHelper.resolvePaginationContext(meta, ENTITY, defaultLimit, maxLimit);
 
-        boolean hasMore = PaginationHelper.hasMore(rawEpisodes.size(), effectiveLimit);
-        List<Episode> episodes = PaginationHelper.trimAndOrient(rawEpisodes, effectiveLimit, isPrev);
+        List<Integer> matchingIds = patientProgramSearchDAO.findMatchingIds(
+                request.getCriteria(), paginationData.getCursorId(), paginationData.getSortOrder(),
+                paginationData.getDirection(), paginationData.getFetchSize());
 
+        List<Episode> rawEpisodes = patientProgramSearchDAO.findByIds(matchingIds);
+
+        PageResult<Episode> pageResult = PaginationHelper.paginate(
+                ENTITY, rawEpisodes, episode -> episode.getEpisodeId().longValue(), paginationData);
+
+        List<Episode> episodes = pageResult.getItems();
         List<Map<String, Object>> results = buildResults(episodes);
-        PaginationResponse paginationResponse = episodes.isEmpty()
-                ? PaginationHelper.emptyPaginationResponse()
-                : PaginationHelper.buildPaginationResponse(
-                        episodes.get(0).getEpisodeId(),
-                        episodes.get(episodes.size() - 1).getEpisodeId(),
-                        hasMore, cursorId, isPrev);
 
         Long totalCount = PaginationHelper.resolveTotalCount(meta,
                 () -> patientProgramSearchDAO.count(request.getCriteria()));
 
-        SearchResponseMeta responseMeta = new SearchResponseMeta(paginationResponse, totalCount);
+        SearchResponseMeta responseMeta = new SearchResponseMeta(pageResult.getPaginationResponse(), totalCount);
         log.debug("Returning {} patient program results", results.size());
         return EpisodeSearchResponse.success(ENTITY, results, responseMeta);
     }
@@ -94,4 +108,7 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
         }
         return results;
     }
+
 }
+
+

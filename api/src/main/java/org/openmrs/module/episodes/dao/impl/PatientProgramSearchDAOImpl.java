@@ -27,6 +27,7 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
@@ -50,8 +51,44 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
     }
 
     @Override
-    public List<Episode> search(SearchCondition searchCriteria, Long cursorId,
-                                 String sortOrder, String direction, int limit) {
+    public List<Integer> findMatchingIds(SearchCondition searchCriteria, Long cursorId,
+                                          String sortOrder, String direction, int limit) {
+        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+
+        CriteriaQuery<Integer> query = cb.createQuery(Integer.class);
+        Root<Episode> root = query.from(Episode.class);
+
+        From<?, ?> patientProgram = root.join(JOIN_PATIENT_PROGRAMS, JoinType.INNER);
+        List<Predicate> predicates = buildPredicates(cb, root, patientProgram, searchCriteria);
+
+        boolean queryDescending = PaginationHelper.shouldSortQueryDescending(sortOrder, direction);
+
+        if (cursorId != null) {
+            if (queryDescending) {
+                predicates.add(cb.lessThan(root.get(FIELD_EPISODE_ID), cursorId));
+            } else {
+                predicates.add(cb.greaterThan(root.get(FIELD_EPISODE_ID), cursorId));
+            }
+        }
+
+        query.select(root.get(FIELD_EPISODE_ID)).distinct(true);
+        query.where(predicates.toArray(new Predicate[0]));
+        query.orderBy(queryDescending
+                ? cb.desc(root.get(FIELD_EPISODE_ID))
+                : cb.asc(root.get(FIELD_EPISODE_ID)));
+
+        return session.createQuery(query)
+                .setMaxResults(limit)
+                .getResultList();
+    }
+
+    @Override
+    public List<Episode> findByIds(List<Integer> episodeIds) {
+        if (episodeIds == null || episodeIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         Session session = sessionFactory.getCurrentSession();
         CriteriaBuilder cb = session.getCriteriaBuilder();
 
@@ -60,33 +97,16 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
 
         Join<Episode, ?> patientProgram = addFetchJoinsAndGetProgramJoin(root);
 
-        List<Predicate> predicates = new ArrayList<>();
-        predicates.add(cb.isFalse(root.get(FIELD_VOIDED)));
-        predicates.add(cb.isFalse(patientProgram.get(FIELD_VOIDED)));
+        query.select(root).distinct(true);
+        query.where(
+                root.get(FIELD_EPISODE_ID).in(episodeIds),
+                cb.isFalse(patientProgram.get(FIELD_VOIDED)));
 
-        EpisodeQueryContext context = new EpisodeQueryContext(cb, root, patientProgram, predicates);
-        criteriaBuilder.apply(context, searchCriteria);
-
-        boolean queryDescending = PaginationHelper.resolveQueryDescending(sortOrder, direction);
-
-        if (cursorId != null) {
-            if (queryDescending) {
-                predicates.add(cb.lessThan(root.get(FIELD_EPISODE_ID), cursorId.intValue()));
-            } else {
-                predicates.add(cb.greaterThan(root.get(FIELD_EPISODE_ID), cursorId.intValue()));
-            }
-        }
-
-        query.select(root).distinct(true)
-                .where(predicates.toArray(new Predicate[0]))
-                .orderBy(queryDescending
-                        ? cb.desc(root.get(FIELD_EPISODE_ID))
-                        : cb.asc(root.get(FIELD_EPISODE_ID)));
-
-        return session.createQuery(query)
+        List<Episode> episodes = session.createQuery(query)
                 .setHint(PaginationHelper.HINT_PASS_DISTINCT_THROUGH, false)
-                .setMaxResults(limit)
                 .getResultList();
+
+        return reorderByIds(episodes, episodeIds);
     }
 
     @Override
@@ -98,7 +118,15 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         Root<Episode> root = query.from(Episode.class);
 
         From<?, ?> patientProgram = root.join(JOIN_PATIENT_PROGRAMS, JoinType.INNER);
+        List<Predicate> predicates = buildPredicates(cb, root, patientProgram, searchCriteria);
 
+        query.select(cb.countDistinct(root))
+                .where(predicates.toArray(new Predicate[0]));
+
+        return session.createQuery(query).getSingleResult();
+    }
+
+    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Episode> root, From<?, ?> patientProgram, SearchCondition searchCriteria) {
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(cb.isFalse(root.get(FIELD_VOIDED)));
         predicates.add(cb.isFalse(patientProgram.get(FIELD_VOIDED)));
@@ -106,10 +134,13 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         EpisodeQueryContext context = new EpisodeQueryContext(cb, root, patientProgram, predicates);
         criteriaBuilder.apply(context, searchCriteria);
 
-        query.select(cb.countDistinct(root))
-                .where(predicates.toArray(new Predicate[0]));
+        return predicates;
+    }
 
-        return session.createQuery(query).getSingleResult();
+    private List<Episode> reorderByIds(List<Episode> episodes, List<Integer> orderedIds) {
+        List<Episode> reordered = new ArrayList<>(episodes);
+        reordered.sort(Comparator.comparingInt(episode -> orderedIds.indexOf(episode.getEpisodeId())));
+        return reordered;
     }
 
     @SuppressWarnings("unchecked")

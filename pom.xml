@@ -50,7 +50,7 @@
 		<REQUIRED_OPENMRS_VERSION>${openmrs.platform.version}</REQUIRED_OPENMRS_VERSION>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junitVersion>4.13</junitVersion>
-		<powerMockVersion>1.7.4</powerMockVersion>
+		<powerMockVersion>2.0.7</powerMockVersion>
 		<mockitoVersion>3.5.11</mockitoVersion>
 		<javaxServletVersion>4.0.1</javaxServletVersion>
 		<webServices.version>2.29.0</webServices.version>
@@ -178,7 +178,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.powermock</groupId>
-				<artifactId>powermock-api-mockito</artifactId>
+				<artifactId>powermock-api-mockito2</artifactId>
 				<version>${powerMockVersion}</version>
 				<scope>test</scope>
 			</dependency>

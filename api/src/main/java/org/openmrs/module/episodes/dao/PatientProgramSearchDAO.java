@@ -16,8 +16,10 @@ import java.util.List;
 
 public interface PatientProgramSearchDAO {
 
-    List<Episode> search(SearchCondition criteria, Long cursorId,
-                          String sortOrder, String direction, int limit);
+    List<Integer> findMatchingIds(SearchCondition criteria, Long cursorId,
+                                   String sortOrder, String direction, int limit);
+
+    List<Episode> findByIds(List<Integer> episodeIds);
 
     long count(SearchCondition criteria);
 }

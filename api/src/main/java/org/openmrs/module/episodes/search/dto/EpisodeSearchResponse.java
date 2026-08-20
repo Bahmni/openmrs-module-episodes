@@ -10,6 +10,7 @@ package org.openmrs.module.episodes.search.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
+import org.bahmni.search.model.SearchResponseMeta;
 
 import java.util.Collections;
 import java.util.List;
