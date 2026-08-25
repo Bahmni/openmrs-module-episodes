@@ -9,16 +9,19 @@
 
 package org.openmrs.module.episodes.dao;
 
-import org.bahmni.search.model.SearchCondition;
+import lombok.Getter;
+import org.openmrs.PatientProgram;
+import org.openmrs.module.episodes.Episode;
 
-import java.util.List;
+@Getter
+public class EpisodePatientProgram {
 
-public interface PatientProgramSearchDAO {
+    private final Episode episode;
+    private final PatientProgram patientProgram;
 
-    List<Integer> findMatchingIds(SearchCondition criteria, Long cursorId,
-                                   String sortOrder, String direction, int limit);
+    public EpisodePatientProgram(Episode episode, PatientProgram patientProgram) {
+        this.episode = episode;
+        this.patientProgram = patientProgram;
+    }
 
-    List<EpisodePatientProgram> findByIds(List<Integer> patientProgramIds);
-
-    long count(SearchCondition criteria);
 }

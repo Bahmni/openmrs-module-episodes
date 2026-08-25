@@ -34,10 +34,6 @@ public class EpisodeSearchResponse {
         this.error = error;
     }
 
-    public static EpisodeSearchResponse success(String context, List<Map<String, Object>> results) {
-        return new EpisodeSearchResponse(context, results, new SearchResponseMeta(), null);
-    }
-
     public static EpisodeSearchResponse success(String context, List<Map<String, Object>> results,
                                                   SearchResponseMeta meta) {
         return new EpisodeSearchResponse(context, results, meta, null);

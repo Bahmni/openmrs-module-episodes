@@ -9,8 +9,7 @@
 
 package org.openmrs.module.episodes.search.impl;
 
-import org.openmrs.PatientProgram;
-import org.openmrs.module.episodes.Episode;
+import org.openmrs.module.episodes.dao.EpisodePatientProgram;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
 import org.openmrs.module.episodes.search.dto.EpisodeSearchResponse;
@@ -24,8 +23,8 @@ import org.bahmni.search.pagination.PageResult;
 import org.bahmni.search.pagination.PaginationHelper;
 import org.bahmni.search.pagination.ResolvedPagination;
 import org.openmrs.api.AdministrationService;
-import org.openmrs.api.context.Context;
 import org.slf4j.Logger;
+
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -38,8 +37,9 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
 
     private static final String ENTITY = "patientProgram";
 
-    private static final String GP_PAGINATION_DEFAULT_LIMIT = "bahmni.episodeSearch.pagination.defaultLimit";
-    private static final String GP_PAGINATION_MAX_LIMIT = "bahmni.episodeSearch.pagination.maxLimit";
+    private static final String GP_PAGINATION_DEFAULT_LIMIT = "bahmni.search.pagination.defaultLimit";
+    private static final String GP_PAGINATION_MAX_LIMIT = "bahmni.search.pagination.maxLimit";
+
     private static final int FALLBACK_DEFAULT_LIMIT = 100;
     private static final int FALLBACK_MAX_LIMIT = 500;
 
@@ -50,12 +50,7 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
     private final AdministrationService administrationService;
 
     public PatientProgramSearchServiceImpl(PatientProgramSearchDAO patientProgramSearchDAO,
-            SearchCriteriaValidator validator,
-            PatientProgramResponseBuilder responseBuilder) {
-        this(patientProgramSearchDAO, validator, responseBuilder, Context.getAdministrationService());
-    }
 
-    public PatientProgramSearchServiceImpl(PatientProgramSearchDAO patientProgramSearchDAO,
             SearchCriteriaValidator validator,
             PatientProgramResponseBuilder responseBuilder,
             AdministrationService administrationService) {
@@ -82,13 +77,19 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
                 request.getCriteria(), paginationData.getCursorId(), paginationData.getSortOrder(),
                 paginationData.getDirection(), paginationData.getFetchSize());
 
-        List<Episode> rawEpisodes = patientProgramSearchDAO.findByIds(matchingIds);
+        boolean hasMore = PaginationHelper.hasMore(matchingIds.size(), paginationData.getEffectiveLimit());
+        List<Integer> idsToFetch = hasMore
+                ? matchingIds.subList(0, paginationData.getEffectiveLimit())
+                : matchingIds;
 
-        PageResult<Episode> pageResult = PaginationHelper.paginate(
-                ENTITY, rawEpisodes, episode -> episode.getEpisodeId().longValue(), paginationData);
+        List<EpisodePatientProgram> rawPairs = patientProgramSearchDAO.findByIds(idsToFetch);
 
-        List<Episode> episodes = pageResult.getItems();
-        List<Map<String, Object>> results = buildResults(episodes);
+        PageResult<EpisodePatientProgram> pageResult = PaginationHelper.paginate(
+                ENTITY, rawPairs, pair -> pair.getPatientProgram().getPatientProgramId().longValue(),
+                paginationData, hasMore);
+
+        List<EpisodePatientProgram> pairs = pageResult.getItems();
+        List<Map<String, Object>> results = buildResults(pairs);
 
         Long totalCount = PaginationHelper.resolveTotalCount(meta,
                 () -> patientProgramSearchDAO.count(request.getCriteria()));
@@ -98,13 +99,11 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
         return EpisodeSearchResponse.success(ENTITY, results, responseMeta);
     }
 
-    private List<Map<String, Object>> buildResults(List<Episode> episodes) {
+    private List<Map<String, Object>> buildResults(List<EpisodePatientProgram> pairs) {
         List<Map<String, Object>> results = new ArrayList<>();
-        for (Episode episode : episodes) {
-            Map<String, Object> episodeMap = responseBuilder.mapEpisode(episode);
-            for (PatientProgram patientProgram : episode.getPatientPrograms()) {
-                results.add(responseBuilder.mapPatientProgram(patientProgram, episodeMap));
-            }
+        for (EpisodePatientProgram pair : pairs) {
+            Map<String, Object> episodeMap = responseBuilder.mapEpisode(pair.getEpisode());
+            results.add(responseBuilder.mapPatientProgram(pair.getPatientProgram(), episodeMap));
         }
         return results;
     }

@@ -10,18 +10,15 @@
 package org.openmrs.module.episodes.search;
 
 import org.bahmni.search.cursor.CursorCodec;
-import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
 import org.bahmni.search.model.PaginationRequest;
 import org.bahmni.search.model.SearchRequestMeta;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.api.AdministrationService;
-import org.openmrs.module.episodes.Episode;
+import org.openmrs.module.episodes.dao.EpisodePatientProgram;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
 import org.openmrs.module.episodes.search.dto.EpisodeSearchResponse;
@@ -37,20 +34,21 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyListOf;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class PatientProgramSearchServiceImplTest {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Mock
     private PatientProgramSearchDAO patientProgramSearchDAO;
@@ -62,15 +60,15 @@ public class PatientProgramSearchServiceImplTest {
 
     @Before
     public void setUp() {
-        initMocks(this);
         searchService = new PatientProgramSearchServiceImpl(
                 patientProgramSearchDAO, new SearchCriteriaValidator(), new PatientProgramResponseBuilder(),
                 administrationService);
+
     }
 
     @Test
     public void shouldDelegateToDAOForValidRequest() {
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         searchService.search(validRequest());
 
@@ -80,7 +78,7 @@ public class PatientProgramSearchServiceImplTest {
 
     @Test
     public void shouldDelegateToDAOWhenOrOperatorUsed() {
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         SearchCondition criteria = new SearchCondition();
         criteria.setOperator("or");
@@ -98,14 +96,14 @@ public class PatientProgramSearchServiceImplTest {
 
     @Test
     public void shouldReturnEmptyListWhenNoResults() {
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         assertThat(searchService.search(validRequest()).getResults().size(), is(0));
     }
 
     @Test
     public void shouldReturnNullNextCursorWhenNoMoreResults() {
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         EpisodeSearchResponse response = searchService.search(validRequest());
 
@@ -116,7 +114,7 @@ public class PatientProgramSearchServiceImplTest {
     public void shouldDecodeCursorAndPassToDao() {
         String cursor = CursorCodec.encode("patientProgram", 50);
         SearchRequest request = requestWithPagination(10, cursor, "next");
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         searchService.search(request);
 
@@ -127,7 +125,7 @@ public class PatientProgramSearchServiceImplTest {
     @Test
     public void shouldCapLimitToMax500() {
         SearchRequest request = requestWithPagination(1000, null, null);
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         searchService.search(request);
 
@@ -137,9 +135,10 @@ public class PatientProgramSearchServiceImplTest {
 
     @Test
     public void shouldUseConfiguredDefaultLimitFromGlobalProperty() {
-        when(administrationService.getGlobalProperty("bahmni.episodeSearch.pagination.defaultLimit")).thenReturn("20");
+        when(administrationService.getGlobalProperty("bahmni.search.pagination.defaultLimit")).thenReturn("20");
+
         SearchRequest request = validRequest();
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         searchService.search(request);
 
@@ -149,9 +148,10 @@ public class PatientProgramSearchServiceImplTest {
 
     @Test
     public void shouldUseConfiguredMaxLimitFromGlobalProperty() {
-        when(administrationService.getGlobalProperty("bahmni.episodeSearch.pagination.maxLimit")).thenReturn("50");
+        when(administrationService.getGlobalProperty("bahmni.search.pagination.maxLimit")).thenReturn("50");
+
         SearchRequest request = requestWithPagination(1000, null, null);
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         searchService.search(request);
 
@@ -161,9 +161,10 @@ public class PatientProgramSearchServiceImplTest {
 
     @Test
     public void shouldFallbackToDefaultWhenGlobalPropertyIsInvalid() {
-        when(administrationService.getGlobalProperty("bahmni.episodeSearch.pagination.defaultLimit")).thenReturn("not-a-number");
+        when(administrationService.getGlobalProperty("bahmni.search.pagination.defaultLimit")).thenReturn("not-a-number");
+
         SearchRequest request = validRequest();
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         searchService.search(request);
 
@@ -172,13 +173,16 @@ public class PatientProgramSearchServiceImplTest {
     }
 
     @Test
-    public void shouldThrowWhenConfiguredMaxLimitGlobalPropertyIsNonPositive() {
-        when(administrationService.getGlobalProperty("bahmni.episodeSearch.pagination.maxLimit")).thenReturn("0");
-        SearchRequest request = validRequest();
+    public void shouldFallbackToDefaultMaxLimitWhenConfiguredMaxLimitGlobalPropertyIsNonPositive() {
+        when(administrationService.getGlobalProperty("bahmni.search.pagination.maxLimit")).thenReturn("0");
 
-        thrown.expect(InvalidSearchCriteriaException.class);
+        SearchRequest request = requestWithPagination(1000, null, null);
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         searchService.search(request);
+
+        verify(patientProgramSearchDAO, times(1)).findMatchingIds(
+                any(SearchCondition.class), (Long) isNull(), anyString(), (String) isNull(), eq(501));
     }
 
     @Test
@@ -187,7 +191,7 @@ public class PatientProgramSearchServiceImplTest {
         SearchRequestMeta meta = new SearchRequestMeta();
         meta.setIncludeTotalCount(true);
         request.setMeta(meta);
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
         when(patientProgramSearchDAO.count(any(SearchCondition.class))).thenReturn(42L);
 
         EpisodeSearchResponse response = searchService.search(request);
@@ -198,7 +202,7 @@ public class PatientProgramSearchServiceImplTest {
 
     @Test
     public void shouldNotCountWhenIncludeTotalCountIsNotSet() {
-        mockDaoReturns(Collections.<Episode>emptyList());
+        mockDaoReturns(Collections.<EpisodePatientProgram>emptyList());
 
         EpisodeSearchResponse response = searchService.search(validRequest());
 
@@ -212,19 +216,19 @@ public class PatientProgramSearchServiceImplTest {
                 any(SearchCondition.class), any(), anyString(), any(), anyInt()))
                 .thenReturn(Arrays.asList(1, 2, 3));
         when(patientProgramSearchDAO.findByIds(Arrays.asList(1, 2, 3)))
-                .thenReturn(Collections.<Episode>emptyList());
+                .thenReturn(Collections.<EpisodePatientProgram>emptyList());
 
         searchService.search(validRequest());
 
         verify(patientProgramSearchDAO, times(1)).findByIds(Arrays.asList(1, 2, 3));
     }
 
-    private void mockDaoReturns(List<Episode> episodes) {
+    private void mockDaoReturns(List<EpisodePatientProgram> pairs) {
         when(patientProgramSearchDAO.findMatchingIds(
                 any(SearchCondition.class), any(), anyString(), any(), anyInt()))
                 .thenReturn(Collections.<Integer>emptyList());
         when(patientProgramSearchDAO.findByIds(anyListOf(Integer.class)))
-                .thenReturn(episodes);
+                .thenReturn(pairs);
     }
 
 

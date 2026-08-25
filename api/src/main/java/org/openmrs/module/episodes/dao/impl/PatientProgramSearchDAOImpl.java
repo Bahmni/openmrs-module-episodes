@@ -11,12 +11,16 @@ package org.openmrs.module.episodes.dao.impl;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
+import org.openmrs.module.episodes.dao.EpisodePatientProgram;
 import org.openmrs.module.episodes.search.builder.EpisodeQueryContext;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramCriteriaBuilder;
 import org.bahmni.search.model.SearchCondition;
 import org.bahmni.search.pagination.PaginationHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -27,13 +31,17 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 
 public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
 
+    private static final Logger log = LoggerFactory.getLogger(PatientProgramSearchDAOImpl.class);
+
     private static final String FIELD_VOIDED = "voided";
-    private static final String FIELD_EPISODE_ID = "episodeId";
+    private static final String FIELD_PATIENT_PROGRAM_ID = "patientProgramId";
     private static final String JOIN_PATIENT_PROGRAMS = "patientPrograms";
     private static final String FETCH_CARE_MANAGER = "careManager";
     private static final String FETCH_PATIENT = "patient";
@@ -66,26 +74,30 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
 
         if (cursorId != null) {
             if (queryDescending) {
-                predicates.add(cb.lessThan(root.get(FIELD_EPISODE_ID), cursorId));
+                predicates.add(cb.lessThan(patientProgram.get(FIELD_PATIENT_PROGRAM_ID), cursorId));
             } else {
-                predicates.add(cb.greaterThan(root.get(FIELD_EPISODE_ID), cursorId));
+                predicates.add(cb.greaterThan(patientProgram.get(FIELD_PATIENT_PROGRAM_ID), cursorId));
             }
         }
 
-        query.select(root.get(FIELD_EPISODE_ID)).distinct(true);
+        query.select(patientProgram.get(FIELD_PATIENT_PROGRAM_ID)).distinct(true);
         query.where(predicates.toArray(new Predicate[0]));
         query.orderBy(queryDescending
-                ? cb.desc(root.get(FIELD_EPISODE_ID))
-                : cb.asc(root.get(FIELD_EPISODE_ID)));
+                ? cb.desc(patientProgram.get(FIELD_PATIENT_PROGRAM_ID))
+                : cb.asc(patientProgram.get(FIELD_PATIENT_PROGRAM_ID)));
 
-        return session.createQuery(query)
+        List<Integer> matchingIds = session.createQuery(query)
                 .setMaxResults(limit)
                 .getResultList();
+
+        log.debug("DEBUG findMatchingIds: found {} ids -> {}", matchingIds.size(), matchingIds);
+
+        return matchingIds;
     }
 
     @Override
-    public List<Episode> findByIds(List<Integer> episodeIds) {
-        if (episodeIds == null || episodeIds.isEmpty()) {
+    public List<EpisodePatientProgram> findByIds(List<Integer> patientProgramIds) {
+        if (patientProgramIds == null || patientProgramIds.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -99,15 +111,29 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
 
         query.select(root).distinct(true);
         query.where(
-                root.get(FIELD_EPISODE_ID).in(episodeIds),
+                patientProgram.get(FIELD_PATIENT_PROGRAM_ID).in(patientProgramIds),
                 cb.isFalse(patientProgram.get(FIELD_VOIDED)));
 
         List<Episode> episodes = session.createQuery(query)
                 .setHint(PaginationHelper.HINT_PASS_DISTINCT_THROUGH, false)
                 .getResultList();
 
-        return reorderByIds(episodes, episodeIds);
+        log.debug("DEBUG findByIds: episodes query returned {} episode(s)", episodes.size());
+
+        Set<Integer> requestedIds = new HashSet<>(patientProgramIds);
+        List<EpisodePatientProgram> pairs = new ArrayList<>();
+        for (Episode episode : episodes) {
+            for (PatientProgram matchedProgram : episode.getPatientPrograms()) {
+                if (requestedIds.contains(matchedProgram.getPatientProgramId())) {
+                    pairs.add(new EpisodePatientProgram(episode, matchedProgram));
+                }
+            }
+        }
+
+        return PaginationHelper.reorderByIds(pairs, patientProgramIds,
+                pair -> pair.getPatientProgram().getPatientProgramId());
     }
+
 
     @Override
     public long count(SearchCondition searchCriteria) {
@@ -120,7 +146,7 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         From<?, ?> patientProgram = root.join(JOIN_PATIENT_PROGRAMS, JoinType.INNER);
         List<Predicate> predicates = buildPredicates(cb, root, patientProgram, searchCriteria);
 
-        query.select(cb.countDistinct(root))
+        query.select(cb.countDistinct(patientProgram.get(FIELD_PATIENT_PROGRAM_ID)))
                 .where(predicates.toArray(new Predicate[0]));
 
         return session.createQuery(query).getSingleResult();
@@ -137,11 +163,6 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         return predicates;
     }
 
-    private List<Episode> reorderByIds(List<Episode> episodes, List<Integer> orderedIds) {
-        List<Episode> reordered = new ArrayList<>(episodes);
-        reordered.sort(Comparator.comparingInt(episode -> orderedIds.indexOf(episode.getEpisodeId())));
-        return reordered;
-    }
 
     @SuppressWarnings("unchecked")
     private Join<Episode, ?> addFetchJoinsAndGetProgramJoin(Root<Episode> root) {

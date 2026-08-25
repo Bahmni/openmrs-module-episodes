@@ -50,7 +50,7 @@
 		<REQUIRED_OPENMRS_VERSION>${openmrs.platform.version}</REQUIRED_OPENMRS_VERSION>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junitVersion>4.13</junitVersion>
-		<powerMockVersion>2.0.7</powerMockVersion>
+		<powerMockVersion>1.7.4</powerMockVersion>
 		<mockitoVersion>3.5.11</mockitoVersion>
 		<javaxServletVersion>4.0.1</javaxServletVersion>
 		<webServices.version>2.29.0</webServices.version>
@@ -178,7 +178,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.powermock</groupId>
-				<artifactId>powermock-api-mockito2</artifactId>
+				<artifactId>powermock-api-mockito</artifactId>
 				<version>${powerMockVersion}</version>
 				<scope>test</scope>
 			</dependency>
@@ -231,7 +231,20 @@
           <name>bahmni-artifactory-release</name>
           <url>https://repo.mybahmni.org.s3.amazonaws.com/artifactory/release</url>
       </repository>
+		<repository>
+			<id>sonatype-nexus-snapshots</id>
+			<name>Sonatype Nexus Snapshots</name>
+			<url>https://central.sonatype.com/repository/maven-snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>interval:10080</updatePolicy>
+			</snapshots>
+		</repository>
 	</repositories>
+
 
 	<pluginRepositories>
 		<pluginRepository>
