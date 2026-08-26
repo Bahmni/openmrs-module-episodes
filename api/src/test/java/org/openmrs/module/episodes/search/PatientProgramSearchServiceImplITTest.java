@@ -14,6 +14,7 @@ import org.openmrs.module.episodes.service.EpisodeSearchService;
 import org.junit.Test;
 import org.openmrs.Location;
 import org.openmrs.PatientProgram;
+import org.openmrs.PatientState;
 import org.openmrs.Person;
 import org.openmrs.PersonName;
 import org.openmrs.Provider;
@@ -46,6 +47,15 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
     private static final String LT = "lt";
     private static final String DATE_FROM = "2024-01-01T00:00:00.000+0000";
     private static final String DATE_TO = "2024-12-31T23:59:59.000+0000";
+
+    // Workflow states of program 1 (standard test dataset) and the concept uuids they resolve to.
+    private static final String STATE_A_UUID = "e938129e-248a-482a-acea-f85127251472"; // -> concept 17
+    private static final String STATUS_A_CONCEPT = "54d2dce5-0357-4253-a91a-85ce519137f5"; // concept 17
+    private static final String STATE_B_UUID = "92584cdc-6a20-4c84-a659-e035e45d36b0"; // workflow 1 -> concept 16
+    private static final String STATUS_B_CONCEPT = "7d104a6f-8337-4afa-b936-41083a5d9d88"; // concept 16
+    // Workflow 2 state -> concept 17; used where two *active* states must live in different workflows
+    // (OpenMRS forbids multiple active states in the same workflow).
+    private static final String STATE_WF2_UUID = "860b3a13-d4b1-4f0a-b526-278652fa1809"; // workflow 2 -> concept 17
 
     @Autowired
     private EpisodeSearchService searchService;
@@ -196,6 +206,120 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
     @Test(expected = InvalidSearchCriteriaException.class)
     public void shouldThrowExceptionForInvalidDateFormat() {
         searchService.search(requestWith(leaf(SearchFields.EOC_START_DATE, GT, "01/01/2024")));
+    }
+
+    @Test
+    public void shouldMatchCurrentStatusAndItsStartDateRange() {
+        PatientProgram pp = newPatientProgram();
+        addState(pp, STATE_B_UUID, date(2020, 1, 1), date(2021, 1, 1)); // old ended state
+        addState(pp, STATE_A_UUID, date(2024, 6, 15), null);            // current active state
+        saveEpisodeWith(pp);
+
+        SearchCondition criteria = group(
+                leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_A_CONCEPT),
+                leaf(SearchFields.PROGRAM_STATUS_DATE, GT, DATE_FROM),
+                leaf(SearchFields.PROGRAM_STATUS_DATE, LT, DATE_TO)
+        );
+
+        List<Map<String, Object>> results = searchService.search(requestWith(criteria)).getResults();
+
+        assertThat(results.size(), is(1));
+        assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
+    }
+
+    @Test
+    public void shouldNotMatchAHistoricalNonCurrentStatus() {
+        PatientProgram pp = newPatientProgram();
+        addState(pp, STATE_B_UUID, date(2020, 1, 1), date(2021, 1, 1)); // old ended state (not current)
+        addState(pp, STATE_A_UUID, date(2024, 6, 15), null);            // current active state
+        saveEpisodeWith(pp);
+
+        List<Map<String, Object>> results = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_B_CONCEPT))
+        ).getResults();
+
+        assertThat(results.size(), is(0));
+    }
+
+    @Test
+    public void shouldMatchLatestEndedStatusWhenAllStatesEnded() {
+        PatientProgram pp = newPatientProgram();
+        addState(pp, STATE_B_UUID, date(2023, 1, 1), date(2023, 6, 1));  // earlier ended
+        addState(pp, STATE_A_UUID, date(2024, 1, 1), date(2024, 6, 1));  // latest ended -> current
+        saveEpisodeWith(pp);
+
+        List<Map<String, Object>> latest = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_A_CONCEPT))
+        ).getResults();
+        assertThat(latest.size(), is(1));
+        assertThat(latest.get(0).get("uuid"), is(pp.getUuid()));
+
+        List<Map<String, Object>> earlier = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_B_CONCEPT))
+        ).getResults();
+        assertThat(earlier.size(), is(0));
+    }
+
+    @Test
+    public void shouldBreakStartDateTieByLowestPatientStateId() {
+        PatientProgram pp = newPatientProgram();
+        addState(pp, STATE_B_UUID, date(2024, 6, 15), null);    // workflow 1, concept 16, lower id
+        addState(pp, STATE_WF2_UUID, date(2024, 6, 15), null);  // workflow 2, concept 17, higher id
+        saveEpisodeWith(pp);
+
+        List<Map<String, Object>> lowerId = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_B_CONCEPT))
+        ).getResults();
+        assertThat(lowerId.size(), is(1));
+        assertThat(lowerId.get(0).get("uuid"), is(pp.getUuid()));
+
+        List<Map<String, Object>> higherId = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_A_CONCEPT))
+        ).getResults();
+        assertThat(higherId.size(), is(0));
+    }
+
+    @Test
+    public void shouldResolveCurrentStatusPerPatientProgram() {
+        PatientProgram ppA = newPatientProgram();
+        addState(ppA, STATE_B_UUID, date(2020, 1, 1), date(2021, 1, 1)); // old
+        addState(ppA, STATE_A_UUID, date(2024, 6, 15), null);            // current = A
+        saveEpisodeWith(ppA);
+
+        PatientProgram ppB = newPatientProgram();
+        addState(ppB, STATE_A_UUID, date(2020, 1, 1), date(2021, 1, 1)); // old
+        addState(ppB, STATE_B_UUID, date(2024, 6, 15), null);            // current = B
+        saveEpisodeWith(ppB);
+
+        List<Map<String, Object>> currentA = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_A_CONCEPT))
+        ).getResults();
+        assertThat(currentA.size(), is(1));
+        assertThat(currentA.get(0).get("uuid"), is(ppA.getUuid()));
+
+        List<Map<String, Object>> currentB = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_B_CONCEPT))
+        ).getResults();
+        assertThat(currentB.size(), is(1));
+        assertThat(currentB.get(0).get("uuid"), is(ppB.getUuid()));
+    }
+
+    private PatientProgram newPatientProgram() {
+        PatientProgram pp = new PatientProgram();
+        pp.setPatient(patientService.getPatient(2));
+        pp.setProgram(programWorkflowService.getProgram(1));
+        pp.setDateEnrolled(date(2020, 1, 1));
+        return programWorkflowService.savePatientProgram(pp);
+    }
+
+    private PatientProgram addState(PatientProgram pp, String stateUuid, Date startDate, Date endDate) {
+        PatientState state = new PatientState();
+        state.setPatientProgram(pp);
+        state.setState(programWorkflowService.getStateByUuid(stateUuid));
+        state.setStartDate(startDate);
+        state.setEndDate(endDate);
+        pp.getStates().add(state);
+        return programWorkflowService.savePatientProgram(pp);
     }
 
     private void saveEpisodeWith(PatientProgram pp) {
