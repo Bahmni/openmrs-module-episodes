@@ -77,47 +77,50 @@ public class PatientProgramJoinResolver {
     private Predicate buildCurrentStateRestriction(EpisodeQueryContext queryContext, From<?, ?> statesJoin) {
         CriteriaBuilder cb = queryContext.criteriaBuilder;
         Subquery<Integer> subquery = queryContext.query.subquery(Integer.class);
-        Root<PatientState> other = subquery.from(PatientState.class);
-        From<?, ?> current = statesJoin;
+        Root<PatientState> stateA = subquery.from(PatientState.class);
+        From<?, ?> stateB = statesJoin;
 
-        subquery.select(other.<Integer>get(STATE_ID));
+        subquery.select(stateA.get(STATE_ID));
         subquery.where(
-                cb.equal(other.get(PATIENT_PROGRAM), current.get(PATIENT_PROGRAM)),
-                cb.isFalse(other.get(VOIDED)),
-                cb.notEqual(other.get(STATE_ID), current.get(STATE_ID)),
-                otherOutranksCurrent(cb, other, current));
+                cb.equal(stateA.get(PATIENT_PROGRAM), stateB.get(PATIENT_PROGRAM)),
+                cb.isFalse(stateA.get(VOIDED)),
+                cb.notEqual(stateA.get(STATE_ID), stateB.get(STATE_ID)),
+                isMoreRecentThan(cb, stateA, stateB));
 
+        // If no other state is more recent than stateB, then stateB is the current one — keep it.
         return cb.not(cb.exists(subquery));
     }
 
-    private Predicate otherOutranksCurrent(CriteriaBuilder cb, From<?, ?> other, From<?, ?> current) {
-        Path<Date> otherEnd = other.get(END_DATE);
-        Path<Date> currentEnd = current.get(END_DATE);
-        Path<Date> otherStart = other.get(START_DATE);
-        Path<Date> currentStart = current.get(START_DATE);
-        Path<Integer> otherId = other.get(STATE_ID);
-        Path<Integer> currentId = current.get(STATE_ID);
+    // Does stateA come later (chronologically) than stateB?
+    private Predicate isMoreRecentThan(CriteriaBuilder cb, From<?, ?> stateA, From<?, ?> stateB) {
+        Path<Date> stateAEndDate = stateA.get(END_DATE);
+        Path<Date> stateBEndDate = stateB.get(END_DATE);
+        Path<Date> stateAStartDate = stateA.get(START_DATE);
+        Path<Date> stateBStartDate = stateB.get(START_DATE);
+        Path<Integer> stateAId = stateA.get(STATE_ID);
+        Path<Integer> stateBId = stateB.get(STATE_ID);
 
-        Predicate otherActive = cb.isNull(otherEnd);
-        Predicate currentActive = cb.isNull(currentEnd);
+        Predicate stateAHasNoEndDate = cb.isNull(stateAEndDate);
+        Predicate stateBHasNoEndDate = cb.isNull(stateBEndDate);
 
-        Predicate otherActiveOutranksEnded = cb.and(otherActive, cb.isNotNull(currentEnd));
+        // A state with no end date (still active) is always more recent than one that has already ended.
+        Predicate currentActiveState = cb.and(stateAHasNoEndDate, cb.isNotNull(stateBEndDate));
 
-        Predicate bothActive = cb.and(otherActive, currentActive);
-        Predicate otherIsMoreRecentActiveState = cb.and(bothActive, cb.or(
-                cb.and(cb.isNotNull(otherStart), cb.isNull(currentStart)),
-                cb.and(cb.isNotNull(otherStart), cb.isNotNull(currentStart),
-                        cb.greaterThan(otherStart, currentStart)),
-                cb.and(cb.isNotNull(otherStart), cb.isNotNull(currentStart),
-                        cb.equal(otherStart, currentStart), cb.lessThan(otherId, currentId)),
-                cb.and(cb.isNull(otherStart), cb.isNull(currentStart), cb.lessThan(otherId, currentId))));
+        Predicate isBothActive = cb.and(stateAHasNoEndDate, stateBHasNoEndDate);
+        Predicate stateAStartedRecently = cb.and(isBothActive, cb.or(
+                cb.and(cb.isNotNull(stateAStartDate), cb.isNull(stateBStartDate)),
+                cb.and(cb.isNotNull(stateAStartDate), cb.isNotNull(stateBStartDate),
+                        cb.greaterThan(stateAStartDate, stateBStartDate)),
+                cb.and(cb.isNotNull(stateAStartDate), cb.isNotNull(stateBStartDate),
+                        cb.equal(stateAStartDate, stateBStartDate), cb.lessThan(stateAId, stateBId)),
+                cb.and(cb.isNull(stateAStartDate), cb.isNull(stateBStartDate), cb.lessThan(stateAId, stateBId))));
 
-        Predicate bothEnded = cb.and(cb.isNotNull(otherEnd), cb.isNotNull(currentEnd));
-        Predicate otherIsMoreRecentEndedState = cb.and(bothEnded, cb.or(
-                cb.greaterThan(otherEnd, currentEnd),
-                cb.and(cb.equal(otherEnd, currentEnd), cb.lessThan(otherId, currentId))));
+        Predicate bothEnded = cb.and(cb.isNotNull(stateAEndDate), cb.isNotNull(stateBEndDate));
+        Predicate stateAEndedRecently = cb.and(bothEnded, cb.or(
+                cb.greaterThan(stateAEndDate, stateBEndDate),
+                cb.and(cb.equal(stateAEndDate, stateBEndDate), cb.lessThan(stateAId, stateBId))));
 
-        return cb.or(otherActiveOutranksEnded, otherIsMoreRecentActiveState, otherIsMoreRecentEndedState);
+        return cb.or(currentActiveState, stateAStartedRecently, stateAEndedRecently);
     }
 
     From<?, ?> joinStateConcept(EpisodeQueryContext queryContext) {
