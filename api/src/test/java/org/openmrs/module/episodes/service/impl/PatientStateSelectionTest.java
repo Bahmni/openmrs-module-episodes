@@ -71,6 +71,16 @@ public class PatientStateSelectionTest {
     }
 
     @Test
+    public void shouldBreakEndDateTieByHighestPatientStateId() {
+        PatientState lowerId = state(date(2023, 1, 1), date(2023, 12, 31));
+        lowerId.setPatientStateId(1);
+        PatientState higherId = state(date(2023, 1, 1), date(2023, 12, 31));
+        higherId.setPatientStateId(2);
+
+        assertThat(PatientProgramResponseBuilder.selectCurrentState(setOf(lowerId, higherId)), is(higherId));
+    }
+
+    @Test
     public void shouldIgnoreVoidedStatesWhenSelectingCurrent() {
         PatientState active = state(date(2023, 1, 1), null);
         PatientState voidedActive = state(date(2024, 1, 1), null);
