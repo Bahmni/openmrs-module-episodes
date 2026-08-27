@@ -258,22 +258,22 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
     }
 
     @Test
-    public void shouldBreakStartDateTieByLowestPatientStateId() {
+    public void shouldBreakStartDateTieByHighestPatientStateId() {
         PatientProgram pp = newPatientProgram();
         addState(pp, STATE_B_UUID, date(2024, 6, 15), null);
         addState(pp, STATE_WF2_UUID, date(2024, 6, 15), null);
         saveEpisodeWith(pp);
 
-        List<Map<String, Object>> lowerId = searchService.search(
-                requestWith(leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_B_CONCEPT))
-        ).getResults();
-        assertThat(lowerId.size(), is(1));
-        assertThat(lowerId.get(0).get("uuid"), is(pp.getUuid()));
-
         List<Map<String, Object>> higherId = searchService.search(
                 requestWith(leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_A_CONCEPT))
         ).getResults();
-        assertThat(higherId.size(), is(0));
+        assertThat(higherId.size(), is(1));
+        assertThat(higherId.get(0).get("uuid"), is(pp.getUuid()));
+
+        List<Map<String, Object>> lowerId = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_STATUS, EQ, STATUS_B_CONCEPT))
+        ).getResults();
+        assertThat(lowerId.size(), is(0));
     }
 
     @Test

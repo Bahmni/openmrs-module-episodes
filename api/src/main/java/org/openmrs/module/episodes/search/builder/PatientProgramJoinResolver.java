@@ -72,7 +72,7 @@ public class PatientProgramJoinResolver {
      * Restricts the joined patient state to the "current" state of its program, matching the
      * semantics of selectCurrentState: active states (no end date) outrank ended states; within
      * a group the latest date wins (startDate for active, endDate for ended, with non-null
-     * startDate preferred over null); date ties are broken by the lowest patientStateId.
+     * startDate preferred over null); date ties are broken by the highest patientStateId.
      */
     private Predicate buildCurrentStateRestriction(EpisodeQueryContext queryContext, From<?, ?> statesJoin) {
         CriteriaBuilder cb = queryContext.criteriaBuilder;
@@ -112,13 +112,13 @@ public class PatientProgramJoinResolver {
                 cb.and(cb.isNotNull(stateAStartDate), cb.isNotNull(stateBStartDate),
                         cb.greaterThan(stateAStartDate, stateBStartDate)),
                 cb.and(cb.isNotNull(stateAStartDate), cb.isNotNull(stateBStartDate),
-                        cb.equal(stateAStartDate, stateBStartDate), cb.lessThan(stateAId, stateBId)),
-                cb.and(cb.isNull(stateAStartDate), cb.isNull(stateBStartDate), cb.lessThan(stateAId, stateBId))));
+                        cb.equal(stateAStartDate, stateBStartDate), cb.greaterThan(stateAId, stateBId)),
+                cb.and(cb.isNull(stateAStartDate), cb.isNull(stateBStartDate), cb.greaterThan(stateAId, stateBId))));
 
         Predicate bothEnded = cb.and(cb.isNotNull(stateAEndDate), cb.isNotNull(stateBEndDate));
         Predicate stateAEndedRecently = cb.and(bothEnded, cb.or(
                 cb.greaterThan(stateAEndDate, stateBEndDate),
-                cb.and(cb.equal(stateAEndDate, stateBEndDate), cb.lessThan(stateAId, stateBId))));
+                cb.and(cb.equal(stateAEndDate, stateBEndDate), cb.greaterThan(stateAId, stateBId))));
 
         return cb.or(currentActiveState, stateAStartedRecently, stateAEndedRecently);
     }
