@@ -68,7 +68,7 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         Root<Episode> root = query.from(Episode.class);
 
         From<?, ?> patientProgram = root.join(JOIN_PATIENT_PROGRAMS, JoinType.INNER);
-        List<Predicate> predicates = buildPredicates(cb, root, patientProgram, searchCriteria);
+        List<Predicate> predicates = buildPredicates(cb, root, patientProgram, searchCriteria,query);
 
         boolean queryDescending = PaginationHelper.shouldSortQueryDescending(sortOrder, direction);
 
@@ -144,7 +144,7 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         Root<Episode> root = query.from(Episode.class);
 
         From<?, ?> patientProgram = root.join(JOIN_PATIENT_PROGRAMS, JoinType.INNER);
-        List<Predicate> predicates = buildPredicates(cb, root, patientProgram, searchCriteria);
+        List<Predicate> predicates = buildPredicates(cb, root, patientProgram, searchCriteria,query);
 
         query.select(cb.countDistinct(patientProgram.get(FIELD_PATIENT_PROGRAM_ID)))
                 .where(predicates.toArray(new Predicate[0]));
@@ -152,7 +152,7 @@ public class PatientProgramSearchDAOImpl implements PatientProgramSearchDAO {
         return session.createQuery(query).getSingleResult();
     }
 
-    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Episode> root, From<?, ?> patientProgram, SearchCondition searchCriteria) {
+    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Episode> root, From<?, ?> patientProgram, SearchCondition searchCriteria,  CriteriaQuery<?> query) {
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(cb.isFalse(root.get(FIELD_VOIDED)));
         predicates.add(cb.isFalse(patientProgram.get(FIELD_VOIDED)));
