@@ -20,6 +20,7 @@ import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
 import org.bahmni.search.model.SearchCondition;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -70,8 +71,9 @@ public class PatientProgramCriteriaBuilderTest {
         CriteriaBuilder mockCriteriaBuilder = mock(CriteriaBuilder.class);
         Root<Episode> mockEpisodeRoot = mock(Root.class);
         From<?, ?> mockPatientProgramJoin = mock(From.class);
+        CriteriaQuery<?> mockQuery = mock(CriteriaQuery.class);
         List<Predicate> predicates = new ArrayList<>();
-        return new EpisodeQueryContext(mockCriteriaBuilder, mockEpisodeRoot, mockPatientProgramJoin, predicates);
+        return new EpisodeQueryContext(mockCriteriaBuilder, mockEpisodeRoot, mockPatientProgramJoin, predicates, mockQuery);
     }
 
     private SearchCondition createLeafCriteria(String fieldName, String comparator, String value) {
