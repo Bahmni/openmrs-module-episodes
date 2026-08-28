@@ -12,6 +12,7 @@ package org.openmrs.module.episodes.search.dto;
 import lombok.Getter;
 import lombok.Setter;
 import org.bahmni.search.model.SearchCondition;
+import org.bahmni.search.model.SearchRequestMeta;
 
 @Getter
 @Setter
@@ -19,5 +20,6 @@ public class SearchRequest {
 
     private String entity;
     private SearchCondition criteria;
+    private SearchRequestMeta meta;
 
 }

@@ -43,6 +43,7 @@
 			<constructor-arg name="responseBuilder">
 				<bean class="org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder"/>
 			</constructor-arg>
+				<constructor-arg name="administrationService" ref="adminService"/>
 			</bean>
 		</property>
 
