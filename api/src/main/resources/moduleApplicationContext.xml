@@ -99,7 +99,7 @@
 
 	<bean parent="serviceContext">
 		<property name="moduleService">
-			<list merge="true">
+			<list>
 				<value>org.openmrs.module.episodes.service.EpisodeService</value>
 				<ref bean="episodeService"/>
 			</list>
@@ -108,7 +108,7 @@
 
 	<bean parent="serviceContext">
 		<property name="moduleService">
-			<list merge="true">
+			<list>
 				<value>org.openmrs.module.episodes.service.EpisodeAttributeTypeService</value>
 				<ref bean="episodeAttributeTypeService"/>
 			</list>
