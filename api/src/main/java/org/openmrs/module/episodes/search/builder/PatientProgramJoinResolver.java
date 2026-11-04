@@ -41,8 +41,11 @@ public class PatientProgramJoinResolver {
     }
 
     From<?, ?> joinProgramConcept(EpisodeQueryContext queryContext) {
+        // Resolve the nested join first, outside the lambda: a nested computeIfAbsent on the
+        // same map throws ConcurrentModificationException on JDK 9+.
+        From<?, ?> programJoin = joinProgram(queryContext);
         return queryContext.joinCache.computeIfAbsent("programConcept",
-                key -> JoinResolvers.findExistingFetchOrJoin(joinProgram(queryContext), "concept", JoinType.INNER));
+                key -> JoinResolvers.findExistingFetchOrJoin(programJoin, "concept", JoinType.INNER));
     }
 
     From<?, ?> joinLocation(EpisodeQueryContext queryContext) {
@@ -51,8 +54,10 @@ public class PatientProgramJoinResolver {
     }
 
     From<?, ?> joinStates(EpisodeQueryContext queryContext) {
+        // Resolve the nested join first, outside the lambda: a nested computeIfAbsent on the
+        // same map throws ConcurrentModificationException on JDK 9+.
+        From<?, ?> patientProgramForFilter = joinPatientProgramForFilter(queryContext);
         return queryContext.joinCache.computeIfAbsent("patientState", key -> {
-            From<?, ?> patientProgramForFilter = joinPatientProgramForFilter(queryContext);
             Join<?, ?> statesJoin = patientProgramForFilter.join("states", JoinType.INNER);
             queryContext.predicates.add(queryContext.criteriaBuilder.isFalse(statesJoin.get(VOIDED)));
             queryContext.predicates.add(buildCurrentStateRestriction(queryContext, statesJoin));
@@ -124,8 +129,11 @@ public class PatientProgramJoinResolver {
     }
 
     From<?, ?> joinStateConcept(EpisodeQueryContext queryContext) {
+        // Resolve the nested join first, outside the lambda: a nested computeIfAbsent on the
+        // same map throws ConcurrentModificationException on JDK 9+.
+        From<?, ?> statesJoin = joinStates(queryContext);
         return queryContext.joinCache.computeIfAbsent("stateConcept", key -> {
-            Join<?, ?> workflowStateJoin = joinStates(queryContext).join("state", JoinType.INNER);
+            Join<?, ?> workflowStateJoin = statesJoin.join("state", JoinType.INNER);
             return workflowStateJoin.join("concept", JoinType.INNER);
         });
     }
@@ -136,16 +144,22 @@ public class PatientProgramJoinResolver {
     }
 
     From<?, ?> joinPatientIdentifiers(EpisodeQueryContext queryContext) {
+        // Resolve the nested join first, outside the lambda: a nested computeIfAbsent on the
+        // same map throws ConcurrentModificationException on JDK 9+.
+        From<?, ?> patientJoin = joinPatient(queryContext);
         return queryContext.joinCache.computeIfAbsent("patientIdentifier", key -> {
-            Join<?, ?> identifiersJoin = joinPatient(queryContext).join("identifiers", JoinType.INNER);
+            Join<?, ?> identifiersJoin = patientJoin.join("identifiers", JoinType.INNER);
             queryContext.predicates.add(queryContext.criteriaBuilder.isFalse(identifiersJoin.get(VOIDED)));
             return identifiersJoin;
         });
     }
 
     From<?, ?> joinIdentifierType(EpisodeQueryContext queryContext) {
+        // Resolve the nested join first, outside the lambda: a nested computeIfAbsent on the
+        // same map throws ConcurrentModificationException on JDK 9+.
+        From<?, ?> identifiersJoin = joinPatientIdentifiers(queryContext);
         return queryContext.joinCache.computeIfAbsent("identifierType",
-                key -> joinPatientIdentifiers(queryContext).join("identifierType", JoinType.INNER));
+                key -> identifiersJoin.join("identifierType", JoinType.INNER));
     }
 
     From<?, ?> joinAttributes(EpisodeQueryContext queryContext) {
@@ -157,7 +171,10 @@ public class PatientProgramJoinResolver {
     }
 
     From<?, ?> joinAttributeType(EpisodeQueryContext queryContext) {
+        // Resolve the nested join first, outside the lambda: a nested computeIfAbsent on the
+        // same map throws ConcurrentModificationException on JDK 9+.
+        From<?, ?> attributesJoin = joinAttributes(queryContext);
         return queryContext.joinCache.computeIfAbsent("programAttributeType",
-                key -> joinAttributes(queryContext).join("attributeType", JoinType.INNER));
+                key -> attributesJoin.join("attributeType", JoinType.INNER));
     }
 }
