@@ -37,7 +37,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyListOf;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -227,7 +227,7 @@ public class PatientProgramSearchServiceImplTest {
         when(patientProgramSearchDAO.findMatchingIds(
                 any(SearchCondition.class), any(), anyString(), any(), anyInt()))
                 .thenReturn(Collections.<Integer>emptyList());
-        when(patientProgramSearchDAO.findByIds(anyListOf(Integer.class)))
+        when(patientProgramSearchDAO.findByIds(anyList()))
                 .thenReturn(pairs);
     }
 
