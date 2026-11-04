@@ -23,6 +23,8 @@ import org.bahmni.search.pagination.PageResult;
 import org.bahmni.search.pagination.PaginationHelper;
 import org.bahmni.search.pagination.ResolvedPagination;
 import org.openmrs.api.AdministrationService;
+import org.openmrs.api.context.Context;
+import org.openmrs.util.PrivilegeConstants;
 import org.slf4j.Logger;
 
 import org.slf4j.LoggerFactory;
@@ -66,10 +68,20 @@ public class PatientProgramSearchServiceImpl implements EpisodeSearchService {
         validator.validateRequest(request);
 
         SearchRequestMeta meta = request.getMeta();
-        int defaultLimit = PaginationHelper.resolveGlobalProperty(
-                administrationService.getGlobalProperty(GP_PAGINATION_DEFAULT_LIMIT), FALLBACK_DEFAULT_LIMIT, GP_PAGINATION_DEFAULT_LIMIT);
-        int maxLimit = PaginationHelper.resolveGlobalProperty(
-                administrationService.getGlobalProperty(GP_PAGINATION_MAX_LIMIT), FALLBACK_MAX_LIMIT, GP_PAGINATION_MAX_LIMIT);
+        // Platform 2.6.11+ requires the "Get Global Properties" privilege for global-property
+        // reads, which a user holding only the search privileges does not have. Proxy the
+        // privilege for the two pagination reads so search works for authorized callers.
+        Context.addProxyPrivilege(PrivilegeConstants.GET_GLOBAL_PROPERTIES);
+        int defaultLimit;
+        int maxLimit;
+        try {
+            defaultLimit = PaginationHelper.resolveGlobalProperty(
+                    administrationService.getGlobalProperty(GP_PAGINATION_DEFAULT_LIMIT), FALLBACK_DEFAULT_LIMIT, GP_PAGINATION_DEFAULT_LIMIT);
+            maxLimit = PaginationHelper.resolveGlobalProperty(
+                    administrationService.getGlobalProperty(GP_PAGINATION_MAX_LIMIT), FALLBACK_MAX_LIMIT, GP_PAGINATION_MAX_LIMIT);
+        } finally {
+            Context.removeProxyPrivilege(PrivilegeConstants.GET_GLOBAL_PROPERTIES);
+        }
 
         ResolvedPagination paginationData = PaginationHelper.resolvePaginationContext(meta, ENTITY, defaultLimit, maxLimit);
 

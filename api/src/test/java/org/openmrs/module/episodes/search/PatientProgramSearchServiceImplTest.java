@@ -12,12 +12,14 @@ package org.openmrs.module.episodes.search;
 import org.bahmni.search.cursor.CursorCodec;
 import org.bahmni.search.model.PaginationRequest;
 import org.bahmni.search.model.SearchRequestMeta;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.api.AdministrationService;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.episodes.dao.EpisodePatientProgram;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
@@ -60,10 +62,18 @@ public class PatientProgramSearchServiceImplTest {
 
     @Before
     public void setUp() {
+        // search() proxies GET_GLOBAL_PROPERTIES around its global-property reads, which
+        // needs an open OpenMRS session even in this plain Mockito test
+        Context.openSession();
         searchService = new PatientProgramSearchServiceImpl(
                 patientProgramSearchDAO, new SearchCriteriaValidator(), new PatientProgramResponseBuilder(),
                 administrationService);
 
+    }
+
+    @After
+    public void tearDown() {
+        Context.closeSession();
     }
 
     @Test

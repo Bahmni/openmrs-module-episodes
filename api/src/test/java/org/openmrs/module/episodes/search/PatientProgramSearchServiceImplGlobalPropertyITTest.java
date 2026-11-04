@@ -124,7 +124,8 @@ public class PatientProgramSearchServiceImplGlobalPropertyITTest extends BaseMod
         SearchCondition leaf = new SearchCondition();
         leaf.setField("episodeOfCare.startDate");
         leaf.setComparator("gt");
-        leaf.setValue("2024-01-01");
+        // the criteria builder requires the full ISO-8601 format yyyy-MM-dd'T'HH:mm:ss.SSSZ
+        leaf.setValue("2024-01-01T00:00:00.000+0000");
 
         SearchCondition criteria = new SearchCondition();
         criteria.setOperator("and");
