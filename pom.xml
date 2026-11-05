@@ -175,6 +175,12 @@
                 <version>${mockitoVersion}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockitoVersion}</version>
+                <scope>test</scope>
+            </dependency>
 			<dependency>
 				<groupId>org.openmrs.module</groupId>
 				<artifactId>webservices.rest-omod</artifactId>
@@ -246,8 +252,7 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.14.0</version>
 					<configuration>
-						<target>17</target>
-						<source>17</source>
+						<release>17</release>
 					</configuration>
 				</plugin>
 				<plugin>

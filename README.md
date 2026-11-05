@@ -10,7 +10,7 @@ This module demonstrates the use of Episodes of Care for OpenMRS. The intention 
 
 Building from Source
 --------------------
-You will need to have Java 1.7+ installed.  Use the command './mvnw package' to
+You will need to have Java 17+ installed.  Use the command './mvnw package' to
 compile and package the module.  The .omod file will be in the omod/target folder.
 
 Alternatively you can add the snippet provided in the [Creating Modules](https://wiki.openmrs.org/x/cAEr) page to your 
