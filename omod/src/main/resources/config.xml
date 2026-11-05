@@ -12,7 +12,7 @@
 
 	<activator>org.openmrs.module.episodes.EpisodeActivator</activator>
 	
-	<require_version>@openmrs.platform.version@</require_version>
+	<require_version>@REQUIRED_OPENMRS_VERSION@</require_version>
 	<require_modules>
 		<require_module>org.openmrs.module.webservices.rest</require_module>
 	</require_modules>

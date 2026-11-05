@@ -47,7 +47,8 @@
 		<MODULE_VERSION>${project.version}</MODULE_VERSION>
 		<MODULE_PACKAGE>org.openmrs.module.${MODULE_ID}</MODULE_PACKAGE>
 		<MODULE_DESCRIPTION>${project.description}</MODULE_DESCRIPTION>
-		<REQUIRED_OPENMRS_VERSION>${openmrs.platform.version}</REQUIRED_OPENMRS_VERSION>
+		<!-- minimum platform the module loads on; deliberately not tied to the build platform. 2.8.9 is the lowest host it has been run on -->
+		<REQUIRED_OPENMRS_VERSION>2.8.9</REQUIRED_OPENMRS_VERSION>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junitVersion>4.13</junitVersion>
 		<mockitoVersion>4.11.0</mockitoVersion>
