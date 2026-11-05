@@ -14,10 +14,13 @@ import org.openmrs.module.episodes.service.EpisodeSearchService;
 import org.junit.Test;
 import org.openmrs.Location;
 import org.openmrs.PatientProgram;
+import org.openmrs.PatientProgramAttribute;
 import org.openmrs.PatientState;
 import org.openmrs.Person;
 import org.openmrs.PersonName;
 import org.openmrs.Provider;
+import org.openmrs.ProgramAttributeType;
+import org.openmrs.customdatatype.datatype.FreeTextDatatype;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.PersonService;
@@ -299,6 +302,81 @@ public class PatientProgramSearchServiceImplITTest extends BaseModuleContextSens
         ).getResults();
         assertThat(currentB.size(), is(1));
         assertThat(currentB.get(0).get("uuid"), is(ppB.getUuid()));
+    }
+
+    // The next four tests cover the join paths whose resolvers resolve a parent join through the
+    // same cache (program.type, identifier kind/value, attribute kind/value). Before the
+    // nested-computeIfAbsent fix each of them threw ConcurrentModificationException on JDK 9+.
+
+    @Test
+    public void shouldReturnPatientProgramsMatchingProgramConcept() {
+        PatientProgram pp = programWorkflowService.getPatientProgram(1);
+        saveEpisodeWith(pp);
+        String programConceptUuid = pp.getProgram().getConcept().getUuid();
+
+        List<Map<String, Object>> results = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_TYPE, EQ, programConceptUuid))
+        ).getResults();
+
+        assertThat(results.size(), is(1));
+        assertThat(results.get(0).get("uuid"), is(pp.getUuid()));
+    }
+
+    @Test
+    public void shouldReturnPatientProgramsMatchingPatientIdentifierKindAndValue() {
+        PatientProgram pp = newPatientProgram();
+        saveEpisodeWith(pp);
+        // patient 2 holds identifier "101" of type "Old Identification Number" in the standard dataset
+        String identifierTypeName = patientService.getPatientIdentifierType(2).getName();
+
+        List<Map<String, Object>> byKind = searchService.search(
+                requestWith(leaf(SearchFields.PATIENT_IDENTIFIER_KIND, EQ, identifierTypeName))
+        ).getResults();
+        assertThat(byKind.size(), is(1));
+        assertThat(byKind.get(0).get("uuid"), is(pp.getUuid()));
+
+        List<Map<String, Object>> byValue = searchService.search(
+                requestWith(leaf(SearchFields.PATIENT_IDENTIFIER_VALUE, EQ, "101"))
+        ).getResults();
+        assertThat(byValue.size(), is(1));
+
+        List<Map<String, Object>> noMatch = searchService.search(
+                requestWith(leaf(SearchFields.PATIENT_IDENTIFIER_VALUE, EQ, "no-such-identifier"))
+        ).getResults();
+        assertThat(noMatch.size(), is(0));
+    }
+
+    @Test
+    public void shouldReturnPatientProgramsMatchingProgramAttributeKindAndValue() {
+        ProgramAttributeType attributeType = new ProgramAttributeType();
+        attributeType.setName("Episode search test attribute");
+        attributeType.setDatatypeClassname(FreeTextDatatype.class.getName());
+        attributeType.setMinOccurs(0);
+        attributeType = programWorkflowService.saveProgramAttributeType(attributeType);
+
+        PatientProgram pp = newPatientProgram();
+        PatientProgramAttribute attribute = new PatientProgramAttribute();
+        attribute.setAttributeType(attributeType);
+        attribute.setValue("attribute-value-1");
+        pp.addAttribute(attribute);
+        programWorkflowService.savePatientProgram(pp);
+        saveEpisodeWith(pp);
+
+        List<Map<String, Object>> byKind = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_ATTRIBUTE_KIND, EQ, attributeType.getUuid()))
+        ).getResults();
+        assertThat(byKind.size(), is(1));
+        assertThat(byKind.get(0).get("uuid"), is(pp.getUuid()));
+
+        List<Map<String, Object>> byValue = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_ATTRIBUTE_VALUE, EQ, "attribute-value-1"))
+        ).getResults();
+        assertThat(byValue.size(), is(1));
+
+        List<Map<String, Object>> noMatch = searchService.search(
+                requestWith(leaf(SearchFields.PROGRAM_ATTRIBUTE_VALUE, EQ, "other-value"))
+        ).getResults();
+        assertThat(noMatch.size(), is(0));
     }
 
     private PatientProgram newPatientProgram() {

@@ -18,6 +18,7 @@ import javax.persistence.criteria.From;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.List;
+import java.util.function.Supplier;
 
 
 public class EpisodeQueryContext extends QueryContext<Episode> {
@@ -35,5 +36,20 @@ public class EpisodeQueryContext extends QueryContext<Episode> {
         this.episodeRoot = episodeRoot;
         this.patientProgramJoin = patientProgramJoin;
         this.query = query;
+    }
+
+    /**
+     * Returns the cached join for {@code key}, creating it with {@code resolver} on first use.
+     * Deliberately not {@code joinCache.computeIfAbsent}: the resolver may itself resolve other
+     * joins through this same cache, and a nested computeIfAbsent on one map throws
+     * ConcurrentModificationException on JDK 9+. get/put is safe under that re-entrancy.
+     */
+    public From<?, ?> join(String key, Supplier<? extends From<?, ?>> resolver) {
+        From<?, ?> existing = joinCache.get(key);
+        if (existing == null) {
+            existing = resolver.get();
+            joinCache.put(key, existing);
+        }
+        return existing;
     }
 }

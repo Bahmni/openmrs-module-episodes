@@ -20,6 +20,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.context.Context;
+import org.openmrs.api.context.UserContext;
+import org.openmrs.api.context.UsernamePasswordAuthenticationScheme;
 import org.openmrs.module.episodes.dao.EpisodePatientProgram;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
@@ -63,8 +65,9 @@ public class PatientProgramSearchServiceImplTest {
     @Before
     public void setUp() {
         // search() proxies GET_GLOBAL_PROPERTIES around its global-property reads, which
-        // needs an open OpenMRS session even in this plain Mockito test
-        Context.openSession();
+        // needs a user context even in this plain Mockito test. A bare UserContext needs no
+        // ServiceContext or database, so this class also passes when run on its own.
+        Context.setUserContext(new UserContext(new UsernamePasswordAuthenticationScheme()));
         searchService = new PatientProgramSearchServiceImpl(
                 patientProgramSearchDAO, new SearchCriteriaValidator(), new PatientProgramResponseBuilder(),
                 administrationService);
@@ -73,7 +76,7 @@ public class PatientProgramSearchServiceImplTest {
 
     @After
     public void tearDown() {
-        Context.closeSession();
+        Context.clearUserContext();
     }
 
     @Test

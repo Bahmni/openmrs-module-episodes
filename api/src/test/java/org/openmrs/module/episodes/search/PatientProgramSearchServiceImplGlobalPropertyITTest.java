@@ -12,7 +12,6 @@ package org.openmrs.module.episodes.search;
 import org.openmrs.module.episodes.service.EpisodeSearchService;
 
 import org.bahmni.search.model.SearchCondition;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Person;
@@ -33,13 +32,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 /**
  * Platform 2.6.11+ requires the "Get Global Properties" privilege for AdministrationService
- * global-property reads. The search service reads two pagination global properties on every
- * search() call. This test proves whether a user holding only the @Authorized privileges of
- * search() can still complete a search, or whether the GP reads need a proxy privilege.
+ * global-property reads, and search() reads two pagination global properties on every call.
+ * Invariant pinned here: a user holding only the @Authorized privileges of search() can
+ * complete a search (the service proxies the privilege for those reads), and the proxy
+ * privilege does not leak past the call.
  */
 public class PatientProgramSearchServiceImplGlobalPropertyITTest extends BaseModuleContextSensitiveTest {
 
@@ -106,23 +107,22 @@ public class PatientProgramSearchServiceImplGlobalPropertyITTest extends BaseMod
         userWithOnlySearchPrivileges = userService.createUser(user, TEST_PASSWORD);
     }
 
-    @After
-    public void restoreAdminSession() {
-        Context.authenticate("admin", "test");
-    }
-
     @Test
     public void shouldCompleteSearchWithOnlyTheAuthorizedPrivileges() {
         Context.authenticate(userWithOnlySearchPrivileges.getUsername(), TEST_PASSWORD);
         EpisodeSearchResponse response = searchService.search(validRequest());
-        assertNotNull("search must complete and return a response for a user holding only the "
-                + "@Authorized privileges (the pagination global-property reads must not require "
-                + "a privilege the search caller does not have)", response);
+        assertNotNull("search must complete for a user holding only the @Authorized privileges "
+                + "(the pagination global-property reads must not require a privilege the caller "
+                + "does not have)", response);
+        assertNotNull(response.getResults());
+        assertNotNull(response.getMeta());
+        assertFalse("the Get Global Properties proxy privilege must be removed after the reads",
+                Context.getUserContext().hasProxyPrivileges());
     }
 
     private SearchRequest validRequest() {
         SearchCondition leaf = new SearchCondition();
-        leaf.setField("episodeOfCare.startDate");
+        leaf.setField(SearchFields.EOC_START_DATE);
         leaf.setComparator("gt");
         // the criteria builder requires the full ISO-8601 format yyyy-MM-dd'T'HH:mm:ss.SSSZ
         leaf.setValue("2024-01-01T00:00:00.000+0000");
