@@ -4,7 +4,7 @@
 
 	<groupId>org.bahmni.module</groupId>
 	<artifactId>episodes</artifactId>
-	<version>2.1.0-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Episodes of Care Module</name>
 	<description>Implementation of Episodes of Care for OpenMRS</description>
@@ -41,19 +41,19 @@
 	</modules>
 
     <properties>
-        <openmrs.platform.version>2.4.2</openmrs.platform.version>
+        <openmrs.platform.version>2.8.10</openmrs.platform.version>
 		<MODULE_ID>episodes</MODULE_ID>
 		<MODULE_NAME>${project.name}</MODULE_NAME>
 		<MODULE_VERSION>${project.version}</MODULE_VERSION>
 		<MODULE_PACKAGE>org.openmrs.module.${MODULE_ID}</MODULE_PACKAGE>
 		<MODULE_DESCRIPTION>${project.description}</MODULE_DESCRIPTION>
-		<REQUIRED_OPENMRS_VERSION>${openmrs.platform.version}</REQUIRED_OPENMRS_VERSION>
+		<!-- minimum platform the module loads on; deliberately not tied to the build platform. 2.8.9 is the lowest host it has been run on -->
+		<REQUIRED_OPENMRS_VERSION>2.8.9</REQUIRED_OPENMRS_VERSION>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junitVersion>4.13</junitVersion>
-		<powerMockVersion>1.7.4</powerMockVersion>
-		<mockitoVersion>3.5.11</mockitoVersion>
+		<mockitoVersion>4.11.0</mockitoVersion>
 		<javaxServletVersion>4.0.1</javaxServletVersion>
-		<webServices.version>2.29.0</webServices.version>
+		<webServices.version>3.6.0</webServices.version>
 		<lombokVersion>1.18.30</lombokVersion>
 	</properties>
 
@@ -170,27 +170,15 @@
 				<version>${junitVersion}</version>
 				<scope>test</scope>
 			</dependency>
-			<dependency>
-				<groupId>org.powermock</groupId>
-				<artifactId>powermock-module-junit4</artifactId>
-				<version>${powerMockVersion}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.powermock</groupId>
-				<artifactId>powermock-api-mockito</artifactId>
-				<version>${powerMockVersion}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-all</artifactId>
-				<version>${mockitoVersion}</version>
-				<scope>test</scope>
-			</dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
+                <version>${mockitoVersion}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
                 <version>${mockitoVersion}</version>
                 <scope>test</scope>
             </dependency>
@@ -265,14 +253,18 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.14.0</version>
 					<configuration>
-						<target>1.8</target>
-						<source>1.8</source>
+						<release>17</release>
 					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.openmrs.maven.plugins</groupId>
 					<artifactId>maven-openmrs-plugin</artifactId>
 					<version>1.0.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.2.5</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>

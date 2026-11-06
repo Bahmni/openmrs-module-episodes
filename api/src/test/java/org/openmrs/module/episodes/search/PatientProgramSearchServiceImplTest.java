@@ -12,12 +12,16 @@ package org.openmrs.module.episodes.search;
 import org.bahmni.search.cursor.CursorCodec;
 import org.bahmni.search.model.PaginationRequest;
 import org.bahmni.search.model.SearchRequestMeta;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.api.AdministrationService;
+import org.openmrs.api.context.Context;
+import org.openmrs.api.context.UserContext;
+import org.openmrs.api.context.UsernamePasswordAuthenticationScheme;
 import org.openmrs.module.episodes.dao.EpisodePatientProgram;
 import org.openmrs.module.episodes.dao.PatientProgramSearchDAO;
 import org.openmrs.module.episodes.search.builder.PatientProgramResponseBuilder;
@@ -37,7 +41,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyListOf;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -60,10 +64,19 @@ public class PatientProgramSearchServiceImplTest {
 
     @Before
     public void setUp() {
+        // search() proxies GET_GLOBAL_PROPERTIES around its global-property reads, which
+        // needs a user context even in this plain Mockito test. A bare UserContext needs no
+        // ServiceContext or database, so this class also passes when run on its own.
+        Context.setUserContext(new UserContext(new UsernamePasswordAuthenticationScheme()));
         searchService = new PatientProgramSearchServiceImpl(
                 patientProgramSearchDAO, new SearchCriteriaValidator(), new PatientProgramResponseBuilder(),
                 administrationService);
 
+    }
+
+    @After
+    public void tearDown() {
+        Context.clearUserContext();
     }
 
     @Test
@@ -227,7 +240,7 @@ public class PatientProgramSearchServiceImplTest {
         when(patientProgramSearchDAO.findMatchingIds(
                 any(SearchCondition.class), any(), anyString(), any(), anyInt()))
                 .thenReturn(Collections.<Integer>emptyList());
-        when(patientProgramSearchDAO.findByIds(anyListOf(Integer.class)))
+        when(patientProgramSearchDAO.findByIds(anyList()))
                 .thenReturn(pairs);
     }
 
