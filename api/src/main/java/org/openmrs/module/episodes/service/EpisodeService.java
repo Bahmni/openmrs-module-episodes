@@ -10,6 +10,7 @@
 package org.openmrs.module.episodes.service;
 
 import org.openmrs.Encounter;
+import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
 import org.openmrs.annotation.Authorized;
 import org.openmrs.module.episodes.Episode;
@@ -29,4 +30,6 @@ public interface EpisodeService {
     Episode getEpisodeForEncounter(Encounter encounter);
 
     List<Episode> getAllEpisodes();
+
+    List<Episode> getEpisodesForPatients(List<Patient> patients);
 }

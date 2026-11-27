@@ -11,17 +11,24 @@ package org.openmrs.module.episodes.dao.impl;
 
 import org.junit.Test;
 import org.openmrs.Encounter;
+import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
 import org.openmrs.api.EncounterService;
+import org.openmrs.api.PatientService;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.EpisodeDAO;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -39,6 +46,9 @@ public class EpisodeDaoTest extends BaseModuleContextSensitiveTest {
 
     @Autowired
     private ProgramWorkflowService programWorkflowService;
+
+    @Autowired
+    private PatientService patientService;
 
     @Test
     public void shouldCreateANewEpisode() {
@@ -162,5 +172,51 @@ public class EpisodeDaoTest extends BaseModuleContextSensitiveTest {
         Episode episodeForEncounter = episodeDAO.getEpisodeForEncounter(encounter1);
 
         assertThat(episodeForEncounter, is(not(episode)));
+    }
+
+    @Test
+    public void shouldReturnEpisodesForGivenPatientsOnly() {
+        Patient patient1 = patientService.getPatient(2);
+        Patient patient2 = patientService.getPatient(7);
+        Patient patient3 = patientService.getPatient(8);
+        Episode episode1 = episodeForPatient(patient1);
+        Episode episode2 = episodeForPatient(patient2);
+        episodeForPatient(patient3);
+
+        List<Episode> episodes = episodeDAO.getEpisodesForPatients(Arrays.asList(patient1, patient2));
+
+        assertThat(episodes, containsInAnyOrder(episode1, episode2));
+    }
+
+    @Test
+    public void shouldReturnAllEpisodesOfAPatient() {
+        Patient patient = patientService.getPatient(2);
+        Episode episode1 = episodeForPatient(patient);
+        Episode episode2 = episodeForPatient(patient);
+
+        List<Episode> episodes = episodeDAO.getEpisodesForPatients(Collections.singletonList(patient));
+
+        assertThat(episodes, containsInAnyOrder(episode1, episode2));
+    }
+
+    @Test
+    public void shouldReturnEmptyListIfPatientsHaveNoEpisodes() {
+        List<Episode> episodes = episodeDAO.getEpisodesForPatients(
+                Collections.singletonList(patientService.getPatient(2)));
+
+        assertThat(episodes, is(empty()));
+    }
+
+    @Test
+    public void shouldReturnEmptyListIfPatientsAreNullOrEmpty() {
+        assertThat(episodeDAO.getEpisodesForPatients(null), is(empty()));
+        assertThat(episodeDAO.getEpisodesForPatients(Collections.<Patient>emptyList()), is(empty()));
+    }
+
+    private Episode episodeForPatient(Patient patient) {
+        Episode episode = new Episode();
+        episode.setPatient(patient);
+        episodeDAO.save(episode);
+        return episode;
     }
 }
