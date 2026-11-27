@@ -15,10 +15,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Encounter;
+import org.openmrs.Patient;
+import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.EpisodeDAO;
 
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class EpisodeServiceImplTest {
@@ -36,5 +43,17 @@ public class EpisodeServiceImplTest {
         episodeService.getEpisodeForEncounter(encounter);
 
         verify(episodeDAO, times(1)).getEpisodeForEncounter(encounter);
+    }
+
+    @Test
+    public void shouldGetEpisodesForPatients() {
+        List<Patient> patients = Arrays.asList(new Patient(), new Patient());
+        List<Episode> episodes = Arrays.asList(new Episode());
+        when(episodeDAO.getEpisodesForPatients(patients)).thenReturn(episodes);
+
+        List<Episode> result = episodeService.getEpisodesForPatients(patients);
+
+        assertSame(episodes, result);
+        verify(episodeDAO, times(1)).getEpisodesForPatients(patients);
     }
 }

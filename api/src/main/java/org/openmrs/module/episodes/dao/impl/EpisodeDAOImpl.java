@@ -12,12 +12,14 @@ package org.openmrs.module.episodes.dao.impl;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.openmrs.Encounter;
+import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
 import org.openmrs.module.episodes.Episode;
 import org.openmrs.module.episodes.dao.EpisodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
 
 public class EpisodeDAOImpl implements EpisodeDAO {
@@ -69,6 +71,17 @@ public class EpisodeDAOImpl implements EpisodeDAO {
     @Override
     public List<Episode> getAllEpisodes() {
         return session().createCriteria(Episode.class).list();
+    }
+
+    @Override
+    public List<Episode> getEpisodesForPatients(List<Patient> patients) {
+        if (patients == null || patients.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return session().createQuery(
+                "SELECT e FROM Episode e WHERE e.patient IN (:patients)")
+                .setParameterList("patients", patients)
+                .list();
     }
 
     private Session session() {
